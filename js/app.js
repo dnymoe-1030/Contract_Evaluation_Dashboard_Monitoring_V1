@@ -278,9 +278,10 @@
 
       if (asOfLabel) asOfLabel.textContent = fmtAsOf(state.asOf);
       if (dataSourceBadge) {
-        var srcText = state.source === 'gsheet' ? 'GSheet Live' : (state.source === 'cache' ? 'Local Cache' : 'Snapshot');
+        var isLive = state.source && state.source.indexOf('gsheet') !== -1;
+        var srcText = state.source === 'gsheet-proxy' ? 'GSheet Secured' : (state.source === 'gsheet' ? 'GSheet Live' : (state.source === 'cache' ? 'Local Cache' : 'Snapshot'));
         dataSourceBadge.textContent = srcText;
-        dataSourceBadge.className = 'source-badge ' + (state.source === 'gsheet' ? 'live' : 'snapshot');
+        dataSourceBadge.className = 'source-badge ' + (isLive ? 'live' : 'snapshot');
       }
 
       FilterEngine.initOptions(state.records, state.onProgress);

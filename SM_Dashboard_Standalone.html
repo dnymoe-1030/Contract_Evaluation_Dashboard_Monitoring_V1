@@ -959,12 +959,23 @@ var DataManager = (function () {
       );
     }
 
-    // Jika spreadsheetId tersedia, coba ambil live data dari GSheet
-    if (GSHEET_CONFIG && GSHEET_CONFIG.spreadsheetId) {
-      fetchFromGSheet(GSHEET_CONFIG, handleSuccess, handleFallback);
-    } else {
-      fetchSnapshot(handleSuccess, handleFallback);
-    }
+    // 1. Prioritaskan pemanggilan Backend Proxy Cloud Run (/api/data)
+    fetch('/api/data')
+      .then(function (res) {
+        if (!res.ok) throw new Error('Proxy /api/data HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (apiRes) {
+        handleSuccess(apiRes);
+      })
+      .catch(function (proxyErr) {
+        // 2. Jika di luar server Cloud Run (misal local static), coba jalur direct atau snapshot
+        if (GSHEET_CONFIG && GSHEET_CONFIG.spreadsheetId) {
+          fetchFromGSheet(GSHEET_CONFIG, handleSuccess, handleFallback);
+        } else {
+          fetchSnapshot(handleSuccess, handleFallback);
+        }
+      });
   }
 
   return {
@@ -1814,9 +1825,10 @@ var ChartManager = (function () {
 
       if (asOfLabel) asOfLabel.textContent = fmtAsOf(state.asOf);
       if (dataSourceBadge) {
-        var srcText = state.source === 'gsheet' ? 'GSheet Live' : (state.source === 'cache' ? 'Local Cache' : 'Snapshot');
+        var isLive = state.source && state.source.indexOf('gsheet') !== -1;
+        var srcText = state.source === 'gsheet-proxy' ? 'GSheet Secured' : (state.source === 'gsheet' ? 'GSheet Live' : (state.source === 'cache' ? 'Local Cache' : 'Snapshot'));
         dataSourceBadge.textContent = srcText;
-        dataSourceBadge.className = 'source-badge ' + (state.source === 'gsheet' ? 'live' : 'snapshot');
+        dataSourceBadge.className = 'source-badge ' + (isLive ? 'live' : 'snapshot');
       }
 
       FilterEngine.initOptions(state.records, state.onProgress);

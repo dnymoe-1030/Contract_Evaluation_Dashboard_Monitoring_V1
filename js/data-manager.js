@@ -287,12 +287,23 @@ var DataManager = (function () {
       );
     }
 
-    // Jika spreadsheetId tersedia, coba ambil live data dari GSheet
-    if (GSHEET_CONFIG && GSHEET_CONFIG.spreadsheetId) {
-      fetchFromGSheet(GSHEET_CONFIG, handleSuccess, handleFallback);
-    } else {
-      fetchSnapshot(handleSuccess, handleFallback);
-    }
+    // 1. Prioritaskan pemanggilan Backend Proxy Cloud Run (/api/data)
+    fetch('/api/data')
+      .then(function (res) {
+        if (!res.ok) throw new Error('Proxy /api/data HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (apiRes) {
+        handleSuccess(apiRes);
+      })
+      .catch(function (proxyErr) {
+        // 2. Jika di luar server Cloud Run (misal local static), coba jalur direct atau snapshot
+        if (GSHEET_CONFIG && GSHEET_CONFIG.spreadsheetId) {
+          fetchFromGSheet(GSHEET_CONFIG, handleSuccess, handleFallback);
+        } else {
+          fetchSnapshot(handleSuccess, handleFallback);
+        }
+      });
   }
 
   return {

@@ -1,0 +1,13 @@
+{
+  "name": "contract-evaluation-monitoring",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contract Evaluation Monitoring Platform for Service Management",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0"
+  }
+}

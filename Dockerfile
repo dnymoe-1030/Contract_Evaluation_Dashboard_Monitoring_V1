@@ -1,21 +1,25 @@
-# Production Nginx Container for SM Contract Evaluation Dashboard
-# Optimized for Google Cloud Run (Region: asia-southeast1 / Singapore)
-FROM nginx:alpine
+# Production Container for SM Contract Evaluation Dashboard
+# Node.js + Express Backend Proxy with Google Sheets API (IAM Service Account)
+FROM node:20-alpine
 
-# Remove default static files
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
 
-# Copy modular frontend assets
-COPY index.html /usr/share/nginx/html/
-COPY css /usr/share/nginx/html/css/
-COPY js /usr/share/nginx/html/js/
-COPY data /usr/share/nginx/html/data/
-COPY SM_Dashboard_Standalone.html /usr/share/nginx/html/
+# Copy package descriptors
+COPY package*.json ./
 
-# Cloud Run listens on PORT 8080 by default
-RUN sed -i 's/listen       80;/listen       8080;/g' /etc/nginx/conf.d/default.conf \
-    && sed -i 's/listen  \[::\]:80;/listen  \[::\]:8080;/g' /etc/nginx/conf.d/default.conf
+# Install production dependencies
+RUN npm install --omit=dev
+
+# Copy application code and assets
+COPY server.js ./
+COPY index.html ./
+COPY css/ ./css/
+COPY js/ ./js/
+COPY data/ ./data/
+COPY SM_Dashboard_Standalone.html ./
 
 EXPOSE 8080
+ENV PORT=8080
+ENV NODE_ENV=production
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]
