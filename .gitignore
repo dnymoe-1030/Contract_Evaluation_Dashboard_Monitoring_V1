@@ -1,0 +1,14 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Deployment archives & temp files
+*.zip
+*.tar.gz
+*.log
+.claude/
+.gemini/
+
+# Optional: standalone build output (bisa digenerate via ./bundle.ps1)
+# SM_Dashboard_Standalone.html

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Contract Evaluation Monitor - Service Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.5 6v5.6C4.5 16.3 7.7 20 12 21.5c4.3-1.5 7.5-5.2 7.5-9.9V6L12 3.2Z"/><path d="M9 12.2l2.1 2.1 4-4.3"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>Contract Evaluation Monitor</h1>
+        <p>Service Management &middot; BAU Monitoring Tool</p>
+      </div>
+    </div>
+    <div class="asof">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+      <span class="live-dot"></span>
+      <span>Data as of <b id="asOfLabel">-</b></span>
+      <span id="dataSourceBadge" class="source-badge snapshot">Snapshot</span>
+    </div>
+  </div>
+  <div class="tabs" id="tabButtons">
+    <button class="tab-btn active" data-tab="priority">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 9.5v4.2"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg> Priority &amp; Reminders
+    </button>
+    <button class="tab-btn" data-tab="process">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.3V18l-4 2v-7.7L4 5Z"/></svg> Process &amp; SLA
+    </button>
+    <button class="tab-btn" data-tab="breakdown">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 4 8l8 4.5 8-4.5-8-4.5Z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16l8 4.5 8-4.5"/></svg> Team Breakdown
+    </button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="filterbar">
+    <span class="fi-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.3V18l-4 2v-7.7L4 5Z"/></svg> Filter
+    </span>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+      <input type="text" id="fSearch" placeholder="Search name or company...">
+    </div>
+    <select id="fStatus">
+      <option value="">All Status</option>
+      <option value="On Progress">On Progress</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <select id="fPillar"><option value="">All Pillars</option></select>
+    <select id="fHrbp"><option value="">All HRBPs</option></select>
+    <select id="fPic"><option value="">All PICs</option></select>
+    <select id="fPriority"><option value="">All Priorities</option></select>
+    <button class="chip-reset" id="fReset">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg> Reset
+    </button>
+  </div>
+
+  <!-- ================= TAB 1: PRIORITY ================= -->
+  <div class="tabpanel active" id="tab-priority">
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <div class="section grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Reminder Compliance by Priority</div></div>
+        <div class="card-note hint">Number of On Progress cases by how many reminders SM has sent <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:260px;"><canvas id="chartReminder"></canvas></div>
+        <div class="legend-row" id="legendReminder"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Contract Due Date Timeline</div></div>
+        <div class="card-note hint">Distribution of On Progress contracts by upcoming week <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:260px;"><canvas id="chartTimeline"></canvas></div>
+        <div class="legend-row" id="legendTimeline"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.3" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="17.5" r="1" fill="currentColor" stroke="none"/></svg> Priority Action List
+        </div>
+        <div class="section-desc">Contracts with On Progress status &middot; auto-sorted by days remaining</div>
+      </div>
+      <div class="table-scroll">
+        <table id="priorityTable">
+          <thead>
+            <tr>
+              <th data-key="priorityRank">Priority <span class="sort-ind">&#9662;</span></th>
+              <th data-key="name">Employee Name</th>
+              <th data-key="pillar">Pillar / Company</th>
+              <th data-key="daysRemaining">Days Remaining</th>
+              <th data-key="endOfContract">End of Contract</th>
+              <th data-key="remarks">Process Stage</th>
+              <th data-key="reminderCount">SM Reminders</th>
+              <th data-key="smPic">SM PIC</th>
+            </tr>
+          </thead>
+          <tbody id="priorityBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 2: PROCESS ================= -->
+  <div class="tabpanel" id="tab-process">
+    <div class="section grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Evaluation Process Stage (Remarks column)</div></div>
+        <div class="card-note hint">Distribution of On Progress cases by current stage <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:300px;"><canvas id="chartFunnel"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Completion SLA Performance</div></div>
+        <div class="card-note hint">Completed cases &middot; days from End of Contract to SAP Action <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:300px;"><canvas id="chartSla"></canvas></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <div class="card-head"><div class="card-title">WeSign Document Status</div></div>
+        <div class="card-note hint">On Progress cases by digital signature status <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:220px;"><canvas id="chartWesign"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 3: BREAKDOWN ================= -->
+  <div class="tabpanel" id="tab-breakdown">
+    <div class="section grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">On Progress Backlog by Pillar</div></div>
+        <div class="card-note hint">Stacked by priority level <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:300px;"><canvas id="chartPillar"></canvas></div>
+        <div class="legend-row" id="legendPillar"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Backlog by SM PIC</div></div>
+        <div class="card-note hint">Number of On Progress cases handled by each Service Management PIC <span class="hint-tag">Click chart for details</span></div>
+        <div class="chart-box" style="height:300px;"><canvas id="chartPic"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2"/><circle cx="12" cy="8.2" r="0.9" fill="currentColor" stroke="none"/></svg>
+    <span><b>About this data:</b> This dashboard monitors contract evaluation workflow from the Service Management team. The Priority logic (URGENT / HIGH / MEDIUM / LOW) highlights upcoming contract renewals. Supports automatic live sync with Google Sheets or fallback local snapshot data.</span>
+  </div>
+
+</div>
+
+<!-- Modal Drilldown -->
+<div class="modal-overlay" id="drillModal" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="drillTitle">-</div>
+        <div class="modal-sub" id="drillSub">-</div>
+      </div>
+      <button class="modal-close" id="drillClose" aria-label="Close" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="table-scroll" style="border:none;border-radius:0;">
+        <table>
+          <thead id="drillHead"></thead>
+          <tbody id="drillBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/data-manager.js"></script>
+<script src="js/filter.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
