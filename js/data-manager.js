@@ -47,70 +47,116 @@ var DataManager = (function () {
   }
 
   /**
+   * Helper to parse dates like "30-Sep-2025" or "2025-09-30" to ISO YYYY-MM-DD
+   */
+  function parseDateToIso(str) {
+    if (!str) return null;
+    str = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+    var m = str.match(/^(\d{1,2})[-/\s]([A-Za-z]{3,})[-/\s](\d{4})$/);
+    if (m) {
+      var day = parseInt(m[1], 10);
+      var monNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      var monIdx = monNames.indexOf(m[2].toLowerCase().slice(0, 3));
+      if (monIdx !== -1) {
+        var y = parseInt(m[3], 10);
+        var mm = String(monIdx + 1).padStart(2, '0');
+        var dd = String(day).padStart(2, '0');
+        return y + '-' + mm + '-' + dd;
+      }
+    }
+    var d = new Date(str);
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    return str;
+  }
+
+  function calcDaysRemaining(endOfContractIso) {
+    if (!endOfContractIso) return null;
+    var d = new Date(endOfContractIso + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var diffMs = d.getTime() - today.getTime();
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  function normalizeRemarks(val) {
+    if (!val) return '—';
+    var s = val.trim().toLowerCase();
+    if (s.indexOf('permanent') !== -1) return 'Permanent Employee Assignment';
+    if (s.indexOf('extend') !== -1) return 'Contract Extend';
+    if (s.indexOf('end of contract') !== -1) return 'End of Contract';
+    if (s.indexOf('end of probation') !== -1) return 'End of Probation';
+    return val.trim();
+  }
+
+  function normalizeWesign(val) {
+    if (!val) return 'Not Started';
+    var s = val.trim().toLowerCase();
+    if (s.indexOf('sent') !== -1 || s.indexOf('awaiting') !== -1) return 'Sent / Awaiting Signature';
+    if (s.indexOf('pending') !== -1) return 'Pending Approval';
+    if (s.indexOf('signed') !== -1 || /\d{4}/.test(s)) return 'Signed (Dated)';
+    if (s === '-' || s === 'not started' || s === '') return 'Not Started';
+    return val.trim();
+  }
+
+  /**
    * Convert CSV rows to structured records
    */
   function convertCSVToRecords(rows) {
     if (rows.length < 2) return [];
-    var headers = rows[0].map(function (h) { return h.trim().toLowerCase(); });
-    
-    // Map standard column variations
-    function findIdx(candidates) {
-      for (var i = 0; i < candidates.length; i++) {
-        var idx = headers.indexOf(candidates[i]);
-        if (idx !== -1) return idx;
-      }
-      return -1;
-    }
-
-    var col = {
-      id: findIdx(['id', 'no', 'employee id', 'nik']),
-      name: findIdx(['name', 'employee name', 'nama karyawan', 'nama']),
-      company: findIdx(['company', 'perusahaan', 'pt']),
-      pillar: findIdx(['pillar', 'pilar', 'pillar / company']),
-      hrbp: findIdx(['hrbp']),
-      pic: findIdx(['pic', 'hr pic']),
-      smPic: findIdx(['sm pic', 'pic sm', 'smpic']),
-      contractType: findIdx(['contract type', 'tipe kontrak', 'contracttype']),
-      endOfContract: findIdx(['end of contract', 'end of contract date', 'akhir kontrak', 'enddate']),
-      daysRemaining: findIdx(['days remaining', 'sisa hari', 'days']),
-      remarks: findIdx(['remarks', 'process stage', 'status evaluasi', 'remarksraw']),
-      status: findIdx(['status']),
-      priority: findIdx(['priority', 'prioritas']),
-      position: findIdx(['position', 'jabatan']),
-      psLevel: findIdx(['ps level', 'level', 'pslevel']),
-      reminder1: findIdx(['reminder 1', 'reminder1']),
-      reminder2: findIdx(['reminder 2', 'reminder2']),
-      reminder3: findIdx(['reminder 3', 'reminder3']),
-      reminderCount: findIdx(['reminder count', 'remindercount', 'jumlah reminder']),
-      wesign: findIdx(['wesign', 'status wesign', 'wesignraw']),
-      slaDays: findIdx(['sla days', 'sladays']),
-      sla: findIdx(['sla', 'status sla'])
-    };
 
     var records = [];
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      var rec = {};
-      Object.keys(col).forEach(function (k) {
-        var idx = col[k];
-        rec[k] = idx !== -1 && row[idx] !== undefined ? row[idx].trim() : null;
+      // Jika baris kosong atau tidak memiliki nama, lewati
+      if (!row || !row[1] || !row[1].trim()) continue;
+
+      var endOfContract = parseDateToIso(row[7]);
+      var status = (row[10] || '').trim();
+      var daysRemaining = calcDaysRemaining(endOfContract);
+
+      // Reminder dates
+      var rem1 = parseDateToIso(row[16]);
+      var rem2 = parseDateToIso(row[17]);
+      var rem3 = parseDateToIso(row[18]);
+      var remCount = 0;
+      if (rem1) remCount++;
+      if (rem2) remCount++;
+      if (rem3) remCount++;
+
+      // Priority
+      var priority = (row[11] || '').trim().toUpperCase() || null;
+      if (!priority && status === 'On Progress' && daysRemaining !== null) {
+        priority = priorityForDays(daysRemaining);
+      }
+
+      records.push({
+        id: row[0] ? (parseInt(row[0], 10) || row[0]) : null,
+        name: row[1] ? row[1].trim() : '',
+        company: row[2] ? row[2].trim() : '',
+        supervisor: row[3] ? row[3].trim() : null,
+        hrbp: row[4] ? row[4].trim() : null,
+        pic: row[5] ? row[5].trim() : null,
+        contractType: row[6] ? row[6].trim() : 'Contract',
+        endOfContract: endOfContract,
+        daysRemaining: daysRemaining,
+        smPic: row[8] ? row[8].trim() : null,
+        remarks: normalizeRemarks(row[9]),
+        status: status,
+        priority: priority,
+        pillar: row[12] ? row[12].trim() : 'Unassigned',
+        position: row[13] ? row[13].trim() : null,
+        psLevel: row[14] ? row[14].trim() : null,
+        actionDate: parseDateToIso(row[15]),
+        reminder1: rem1,
+        reminder2: rem2,
+        reminder3: rem3,
+        reminderCount: remCount,
+        wesign: normalizeWesign(row[20]),
+        slaDays: row[21] ? parseInt(row[21], 10) : null,
+        sla: row[22] ? row[22].trim() : null
       });
-
-      // Type castings
-      if (rec.daysRemaining !== null) {
-        rec.daysRemaining = parseInt(rec.daysRemaining, 10);
-        if (isNaN(rec.daysRemaining)) rec.daysRemaining = null;
-      }
-      if (rec.reminderCount !== null) {
-        rec.reminderCount = parseInt(rec.reminderCount, 10) || 0;
-      } else {
-        rec.reminderCount = 0;
-        if (rec.reminder1) rec.reminderCount++;
-        if (rec.reminder2) rec.reminderCount++;
-        if (rec.reminder3) rec.reminderCount++;
-      }
-
-      records.push(rec);
     }
     return records;
   }
