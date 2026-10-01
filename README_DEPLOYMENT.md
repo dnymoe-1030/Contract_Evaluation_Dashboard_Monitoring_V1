@@ -65,16 +65,31 @@ Ketika ID Google Sheet tim SM sudah tersedia:
 
 ---
 
-## 🚀 3. Opsi Deployment
+## 🚀 3. Status & Opsi Deployment
 
-### Opsi A: Git & Static Cloud (GitHub Pages / Vercel / Netlify / Cloudflare Pages)
-1. Push project ini ke repository GitHub.
-2. Untuk **GitHub Pages**:
-   * Masuk ke *Settings* repository > *Pages*.
-   * Pilih branch `main` dan folder `/ (root)` > Save.
-   * Dashboard akan langsung online dan beralamat `https://<username>.github.io/<repo-name>/`.
-3. Untuk **Vercel / Netlify**:
-   * Hubungkan repository GitHub dan klik Deploy (tidak butuh build step khusus).
+### 🌟 Produksi Live (Google Cloud Run — Region Singapore)
+Dashboard ini telah ter-deploy aktif di **Google Cloud Run**:
+* **URL Produksi:** **https://contract-evaluation-monitoring-645716388397.asia-southeast1.run.app**
+* **Project ID:** `hris-292403`
+* **Region:** `asia-southeast1` (Singapore)
+* **Service Name:** `contract-evaluation-monitoring`
+* **Container Image:** `gcr.io/hris-292403/contract-evaluation-monitoring:latest`
+
+#### Perintah Re-Deploy ke GCP Cloud Run:
+```powershell
+# 1. Build container image
+gcloud builds submit --tag gcr.io/hris-292403/contract-evaluation-monitoring:latest .
+
+# 2. Deploy ke Cloud Run
+gcloud run deploy contract-evaluation-monitoring `
+  --image gcr.io/hris-292403/contract-evaluation-monitoring:latest `
+  --region asia-southeast1 `
+  --platform managed `
+  --allow-unauthenticated
+```
+
+### Opsi Lain: Git & Static Cloud (GitHub Pages / Vercel / Netlify)
+1. Repository GitHub: [Contract_Evaluation_Dashboard_Monitoring_V1](https://github.com/dnymoe-1030/Contract_Evaluation_Dashboard_Monitoring_V1)
 
 ### Opsi B: Web Server Internal (Nginx / Apache / IIS)
 * Copy seluruh folder project (atau file `index.html`, folder `css/`, `js/`, dan `data/`) ke direktori root web server (misal `/var/www/html/` atau `C:\inetpub\wwwroot\`).
