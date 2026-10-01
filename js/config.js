@@ -6,14 +6,16 @@
 // Google Sheets Integration Configuration
 // (Bisa diisi ID GSheet tim Service Management untuk auto-sync data live)
 var GSHEET_CONFIG = {
-  // Masukkan ID Spreadsheet Google Sheet Anda di sini:
-  spreadsheetId: '', 
-  // Nama Sheet / Tab (opsional, default tab pertama jika kosong):
+  // ID Spreadsheet Google Sheet tim Service Management:
+  spreadsheetId: '1OuXq9g48pthKwplwGe96QMc3Ol_coa0yrzE_Se-R4hk', 
+  // ID Tab / Lembar kerja spesifik (gid dari URL):
+  gid: '2113128387',
+  // Nama Sheet / Tab (opsional jika gid sudah ditentukan):
   sheetName: '',
   // URL Custom CSV atau Apps Script jika ada:
   customEndpoint: '',
-  // Status sinkronisasi otomatis
-  useLive: false
+  // Status sinkronisasi live
+  useLive: true
 };
 
 // Priority Configuration

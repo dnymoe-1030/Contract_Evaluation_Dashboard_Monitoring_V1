@@ -147,7 +147,9 @@ var DataManager = (function () {
     var sheetId = cfg.spreadsheetId;
     if (!sheetId) return onError(new Error('No Spreadsheet ID specified'));
 
-    var url = cfg.customEndpoint || ('https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv' + (cfg.sheetName ? '&sheet=' + encodeURIComponent(cfg.sheetName) : ''));
+    var gidParam = cfg.gid ? '&gid=' + encodeURIComponent(cfg.gid) : '';
+    var sheetParam = cfg.sheetName ? '&sheet=' + encodeURIComponent(cfg.sheetName) : '';
+    var url = cfg.customEndpoint || ('https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv' + gidParam + sheetParam);
 
     fetch(url)
       .then(function (res) {
