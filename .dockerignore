@@ -1,0 +1,5 @@
+.git
+.gitignore
+*.ps1
+*.md
+dashboard_original_backup.html
