@@ -92,6 +92,22 @@ function fmtAsOf(iso) {
   return isNaN(d.getTime()) ? iso : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
+function fmtMonth(yyyy_mm) {
+  if (!yyyy_mm) return '';
+  var parts = String(yyyy_mm).split('-');
+  if (parts.length !== 2) return yyyy_mm;
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  if (m >= 1 && m <= 12) {
+    return monthNames[m - 1] + ' ' + y;
+  }
+  return yyyy_mm;
+}
+
 function weekBucketLabel(days) {
   var idx = Math.max(0, Math.floor(days / 7));
   var startD = idx * 7, endD = idx * 7 + 6;

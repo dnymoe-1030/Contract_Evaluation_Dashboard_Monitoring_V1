@@ -205,6 +205,35 @@
   .chip-reset svg{ width:12px; height:12px; stroke:currentColor; }
   .chip-reset:hover{ background:var(--accent-soft-strong); }
 
+  /* ---------- tab toolbar & month filter ---------- */
+  .tab-toolbar{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    gap:12px; margin-bottom:18px; padding:10px 14px;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+    box-shadow:var(--shadow-sm);
+  }
+  .tab-toolbar-left{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .tab-toolbar-label{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
+    color:var(--text-secondary); text-transform:uppercase; letter-spacing:.04em;
+  }
+  .tab-toolbar-label svg{ width:15px; height:15px; stroke:var(--accent); }
+  .tab-month-select{
+    font-family:var(--font-ui); font-size:12.5px; font-weight:600; color:var(--text-primary);
+    background:var(--surface-raised); border:1px solid var(--border-strong); border-radius:8px;
+    padding:6px 12px; outline:none; min-height:34px; cursor:pointer;
+  }
+  .tab-month-select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .tab-toolbar-right{
+    display:flex; align-items:center; gap:8px;
+  }
+  .tab-toolbar-stats{
+    font-size:12px; color:var(--text-muted); font-weight:500;
+  }
+  .tab-toolbar-stats b{ color:var(--text-primary); }
+
   /* ---------- kpi row ---------- */
   .kpi-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
   @media (max-width:1080px){ .kpi-row{ grid-template-columns:repeat(2,1fr); } }
@@ -407,6 +436,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
       <input type="text" id="fSearch" placeholder="Search name or company...">
     </div>
+    <select id="fMonth" title="Filter by Month for Active Tab">
+      <option value="">All Months</option>
+    </select>
     <select id="fStatus">
       <option value="">All Status</option>
       <option value="On Progress">On Progress</option>
@@ -423,6 +455,21 @@
 
   <!-- ================= TAB 1: PRIORITY ================= -->
   <div class="tabpanel active" id="tab-priority">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab1" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab1" class="tab-month-select" aria-label="Filter Tab 1 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab1MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="kpi-row" id="kpiRow"></div>
 
     <div class="section grid-2">
@@ -469,6 +516,21 @@
 
   <!-- ================= TAB 2: PROCESS ================= -->
   <div class="tabpanel" id="tab-process">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab2" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab2" class="tab-month-select" aria-label="Filter Tab 2 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab2MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">Evaluation Process Stage (Remarks column)</div></div>
@@ -492,6 +554,21 @@
 
   <!-- ================= TAB 3: BREAKDOWN ================= -->
   <div class="tabpanel" id="tab-breakdown">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab3" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab3" class="tab-month-select" aria-label="Filter Tab 3 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab3MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">On Progress Backlog by Pillar</div></div>
@@ -634,6 +711,22 @@ function fmtAsOf(iso) {
   if (!iso) return '—';
   var d = new Date(iso + 'T00:00:00');
   return isNaN(d.getTime()) ? iso : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function fmtMonth(yyyy_mm) {
+  if (!yyyy_mm) return '';
+  var parts = String(yyyy_mm).split('-');
+  if (parts.length !== 2) return yyyy_mm;
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  if (m >= 1 && m <= 12) {
+    return monthNames[m - 1] + ' ' + y;
+  }
+  return yyyy_mm;
 }
 
 function weekBucketLabel(days) {
@@ -989,7 +1082,7 @@ var DataManager = (function () {
 // --- js/filter.js ---
 /**
  * Service Management Contract Evaluation Monitor
- * Filter Engine & Table Sorting
+ * Filter Engine & Table Sorting (Supports Per-Tab Month Filters)
  */
 
 var FilterEngine = (function () {
@@ -1003,46 +1096,139 @@ var FilterEngine = (function () {
   var searchInput = document.getElementById('fSearch');
   var resetBtn = document.getElementById('fReset');
 
+  // Month Selectors
+  var monthSel = document.getElementById('fMonth');
+  var monthTab1Sel = document.getElementById('fMonthTab1');
+  var monthTab2Sel = document.getElementById('fMonthTab2');
+  var monthTab3Sel = document.getElementById('fMonthTab3');
+
   var sortState = { key: 'priorityRank', dir: 1 };
+  var currentTab = 'priority';
+  var tabMonths = {
+    priority: '',
+    process: '',
+    breakdown: ''
+  };
 
   function initOptions(allRecords, onProgressRecords) {
-    // Reset options
-    pillarSel.innerHTML = '<option value="">All Pillars</option>';
-    hrbpSel.innerHTML = '<option value="">All HRBPs</option>';
-    picSel.innerHTML = '<option value="">All PICs</option>';
-    prioritySel.innerHTML = '<option value="">All Priorities</option>';
+    // Reset standard dropdown options
+    if (pillarSel) pillarSel.innerHTML = '<option value="">All Pillars</option>';
+    if (hrbpSel) hrbpSel.innerHTML = '<option value="">All HRBPs</option>';
+    if (picSel) picSel.innerHTML = '<option value="">All PICs</option>';
+    if (prioritySel) prioritySel.innerHTML = '<option value="">All Priorities</option>';
 
-    uniqueSorted(onProgressRecords, 'pillar').forEach(function (p) {
-      var o = document.createElement('option'); o.value = p; o.textContent = p; pillarSel.appendChild(o);
+    if (pillarSel) {
+      uniqueSorted(onProgressRecords, 'pillar').forEach(function (p) {
+        var o = document.createElement('option'); o.value = p; o.textContent = p; pillarSel.appendChild(o);
+      });
+    }
+
+    if (hrbpSel) {
+      uniqueSorted(allRecords, 'hrbp').forEach(function (p) {
+        var o = document.createElement('option'); o.value = p; o.textContent = p; hrbpSel.appendChild(o);
+      });
+    }
+
+    if (picSel) {
+      uniqueSorted(allRecords, 'pic').forEach(function (p) {
+        var o = document.createElement('option'); o.value = p; o.textContent = p; picSel.appendChild(o);
+      });
+    }
+
+    if (prioritySel) {
+      PRIORITY_ORDER.forEach(function (p) {
+        var o = document.createElement('option'); o.value = p; o.textContent = p; prioritySel.appendChild(o);
+      });
+    }
+
+    // Calculate month frequencies
+    var allMonthMap = {}, opMonthMap = {}, compMonthMap = {};
+    (allRecords || []).forEach(function (r) {
+      if (r.endOfContract && /^\d{4}-\d{2}/.test(r.endOfContract)) {
+        var m = r.endOfContract.slice(0, 7);
+        allMonthMap[m] = (allMonthMap[m] || 0) + 1;
+        if ((r.status || '').trim() === 'On Progress') {
+          opMonthMap[m] = (opMonthMap[m] || 0) + 1;
+        } else if ((r.status || '').trim() === 'Completed') {
+          compMonthMap[m] = (compMonthMap[m] || 0) + 1;
+        }
+      }
     });
 
-    uniqueSorted(allRecords, 'hrbp').forEach(function (p) {
-      var o = document.createElement('option'); o.value = p; o.textContent = p; hrbpSel.appendChild(o);
-    });
+    var sortedMonths = Object.keys(allMonthMap).sort().reverse();
 
-    uniqueSorted(allRecords, 'pic').forEach(function (p) {
-      var o = document.createElement('option'); o.value = p; o.textContent = p; picSel.appendChild(o);
-    });
+    // Populate Tab 1 (Priority) Month Options
+    if (monthTab1Sel) {
+      monthTab1Sel.innerHTML = '<option value="">All Months (Semua Bulan)</option>';
+      sortedMonths.forEach(function (m) {
+        var op = opMonthMap[m] || 0;
+        var o = document.createElement('option');
+        o.value = m;
+        o.textContent = fmtMonth(m) + ' (' + op + (op === 1 ? ' case)' : ' cases)');
+        monthTab1Sel.appendChild(o);
+      });
+    }
 
-    PRIORITY_ORDER.forEach(function (p) {
-      var o = document.createElement('option'); o.value = p; o.textContent = p; prioritySel.appendChild(o);
-    });
+    // Populate Tab 2 (Process & SLA) Month Options
+    if (monthTab2Sel) {
+      monthTab2Sel.innerHTML = '<option value="">All Months (Semua Bulan)</option>';
+      sortedMonths.forEach(function (m) {
+        var tot = allMonthMap[m] || 0;
+        var op = opMonthMap[m] || 0;
+        var comp = compMonthMap[m] || 0;
+        var o = document.createElement('option');
+        o.value = m;
+        var label = fmtMonth(m) + ' (' + tot + ' total';
+        if (op > 0 && comp > 0) label += ': ' + op + ' act, ' + comp + ' comp';
+        label += ')';
+        o.textContent = label;
+        monthTab2Sel.appendChild(o);
+      });
+    }
+
+    // Populate Tab 3 (Team Breakdown) Month Options
+    if (monthTab3Sel) {
+      monthTab3Sel.innerHTML = '<option value="">All Months (Semua Bulan)</option>';
+      sortedMonths.forEach(function (m) {
+        var op = opMonthMap[m] || 0;
+        var o = document.createElement('option');
+        o.value = m;
+        o.textContent = fmtMonth(m) + ' (' + op + (op === 1 ? ' case)' : ' cases)');
+        monthTab3Sel.appendChild(o);
+      });
+    }
+
+    // Populate Top Bar Month Select
+    if (monthSel) {
+      monthSel.innerHTML = '<option value="">All Months</option>';
+      sortedMonths.forEach(function (m) {
+        var tot = allMonthMap[m] || 0;
+        var o = document.createElement('option');
+        o.value = m;
+        o.textContent = fmtMonth(m) + ' (' + tot + ' cases)';
+        monthSel.appendChild(o);
+      });
+    }
   }
 
   function currentFilters() {
     return {
-      status: statusSel.value,
-      pillar: pillarSel.value,
-      hrbp: hrbpSel.value,
-      pic: picSel.value,
-      priority: prioritySel.value,
-      q: searchInput.value.trim().toLowerCase()
+      status: statusSel ? statusSel.value : '',
+      pillar: pillarSel ? pillarSel.value : '',
+      hrbp: hrbpSel ? hrbpSel.value : '',
+      pic: picSel ? picSel.value : '',
+      priority: prioritySel ? prioritySel.value : '',
+      q: searchInput ? searchInput.value.trim().toLowerCase() : ''
     };
   }
 
   function applyFilters(list, f, opts) {
     opts = opts || {};
-    return list.filter(function (r) {
+    var monthFilter = (opts.month !== undefined) ? opts.month : f.month;
+    return (list || []).filter(function (r) {
+      if (monthFilter) {
+        if (!r.endOfContract || r.endOfContract.slice(0, 7) !== monthFilter) return false;
+      }
       if (f.pillar && r.pillar !== f.pillar) return false;
       if (f.hrbp && r.hrbp !== f.hrbp) return false;
       if (f.pic && r.pic !== f.pic) return false;
@@ -1055,21 +1241,87 @@ var FilterEngine = (function () {
     });
   }
 
+  function getTabMonth(tabKey) {
+    return tabMonths[tabKey] || '';
+  }
+
+  function setTabMonth(tabKey, val) {
+    tabMonths[tabKey] = val || '';
+    if (tabKey === 'priority' && monthTab1Sel) monthTab1Sel.value = tabMonths[tabKey];
+    if (tabKey === 'process' && monthTab2Sel) monthTab2Sel.value = tabMonths[tabKey];
+    if (tabKey === 'breakdown' && monthTab3Sel) monthTab3Sel.value = tabMonths[tabKey];
+    if (tabKey === currentTab && monthSel) monthSel.value = tabMonths[tabKey];
+  }
+
+  function syncTopMonth(activeTab) {
+    currentTab = activeTab;
+    if (monthSel) {
+      monthSel.value = tabMonths[activeTab] || '';
+    }
+  }
+
   function resetFilters(onResetCallback) {
-    statusSel.value = '';
-    pillarSel.value = '';
-    hrbpSel.value = '';
-    picSel.value = '';
-    prioritySel.value = '';
-    searchInput.value = '';
+    if (statusSel) statusSel.value = '';
+    if (pillarSel) pillarSel.value = '';
+    if (hrbpSel) hrbpSel.value = '';
+    if (picSel) picSel.value = '';
+    if (prioritySel) prioritySel.value = '';
+    if (searchInput) searchInput.value = '';
+    
+    // Reset month filters
+    tabMonths.priority = '';
+    tabMonths.process = '';
+    tabMonths.breakdown = '';
+    if (monthSel) monthSel.value = '';
+    if (monthTab1Sel) monthTab1Sel.value = '';
+    if (monthTab2Sel) monthTab2Sel.value = '';
+    if (monthTab3Sel) monthTab3Sel.value = '';
+
     if (typeof onResetCallback === 'function') onResetCallback();
   }
 
   function setupEventListeners(onChangeCallback) {
     [statusSel, pillarSel, hrbpSel, picSel, prioritySel].forEach(function (el) {
-      el.addEventListener('change', onChangeCallback);
+      if (el) el.addEventListener('change', onChangeCallback);
     });
-    searchInput.addEventListener('input', onChangeCallback);
+    if (searchInput) searchInput.addEventListener('input', onChangeCallback);
+
+    // Global Month dropdown changed
+    if (monthSel) {
+      monthSel.addEventListener('change', function () {
+        var val = monthSel.value;
+        tabMonths[currentTab] = val;
+        if (currentTab === 'priority' && monthTab1Sel) monthTab1Sel.value = val;
+        if (currentTab === 'process' && monthTab2Sel) monthTab2Sel.value = val;
+        if (currentTab === 'breakdown' && monthTab3Sel) monthTab3Sel.value = val;
+        onChangeCallback();
+      });
+    }
+
+    // Per-tab month dropdowns changed
+    if (monthTab1Sel) {
+      monthTab1Sel.addEventListener('change', function () {
+        tabMonths.priority = monthTab1Sel.value;
+        if (currentTab === 'priority' && monthSel) monthSel.value = monthTab1Sel.value;
+        onChangeCallback();
+      });
+    }
+
+    if (monthTab2Sel) {
+      monthTab2Sel.addEventListener('change', function () {
+        tabMonths.process = monthTab2Sel.value;
+        if (currentTab === 'process' && monthSel) monthSel.value = monthTab2Sel.value;
+        onChangeCallback();
+      });
+    }
+
+    if (monthTab3Sel) {
+      monthTab3Sel.addEventListener('change', function () {
+        tabMonths.breakdown = monthTab3Sel.value;
+        if (currentTab === 'breakdown' && monthSel) monthSel.value = monthTab3Sel.value;
+        onChangeCallback();
+      });
+    }
 
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
@@ -1099,6 +1351,9 @@ var FilterEngine = (function () {
     initOptions: initOptions,
     currentFilters: currentFilters,
     applyFilters: applyFilters,
+    getTabMonth: getTabMonth,
+    setTabMonth: setTabMonth,
+    syncTopMonth: syncTopMonth,
     resetFilters: resetFilters,
     setupEventListeners: setupEventListeners,
     getSortState: function () { return sortState; }
@@ -1570,6 +1825,21 @@ var ChartManager = (function () {
   var drillBody = document.getElementById('drillBody');
   var drillClose = document.getElementById('drillClose');
 
+  var tab1MonthStats = document.getElementById('tab1MonthStats');
+  var tab2MonthStats = document.getElementById('tab2MonthStats');
+  var tab3MonthStats = document.getElementById('tab3MonthStats');
+
+  function updateTabStats(tabKey, month, activeCount, compCount) {
+    var el = tabKey === 'priority' ? tab1MonthStats : (tabKey === 'process' ? tab2MonthStats : tab3MonthStats);
+    if (!el) return;
+    var monthText = month ? ('Contract Month: <b>' + fmtMonth(month) + '</b> &middot; ') : 'All contract months &middot; ';
+    if (tabKey === 'process') {
+      el.innerHTML = monthText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
+    } else {
+      el.innerHTML = monthText + '<b>' + activeCount + '</b> active cases';
+    }
+  }
+
   // ---------------------------------------------------------------
   // Drilldown Modal
   // ---------------------------------------------------------------
@@ -1729,18 +1999,18 @@ var ChartManager = (function () {
   // Chart Dispatcher
   // ---------------------------------------------------------------
   var CHART_RENDERERS = {
-    priority: function () {
-      ChartManager.renderReminderChart(lastActive, openDrill);
-      ChartManager.renderTimelineChart(lastActive, openDrill);
+    priority: function (activeRecords, completedRecords) {
+      ChartManager.renderReminderChart(activeRecords, openDrill);
+      ChartManager.renderTimelineChart(activeRecords, openDrill);
     },
-    process: function () {
-      ChartManager.renderFunnelChart(lastActive, openDrill);
-      ChartManager.renderSlaChart(lastCompleted, openDrill);
-      ChartManager.renderWesignChart(lastActive, openDrill);
+    process: function (activeRecords, completedRecords) {
+      ChartManager.renderFunnelChart(activeRecords, openDrill);
+      ChartManager.renderSlaChart(completedRecords, openDrill);
+      ChartManager.renderWesignChart(activeRecords, openDrill);
     },
-    breakdown: function () {
-      ChartManager.renderPillarChart(lastActive, openDrill);
-      ChartManager.renderPicChart(lastActive, openDrill);
+    breakdown: function (activeRecords) {
+      ChartManager.renderPillarChart(activeRecords, openDrill);
+      ChartManager.renderPicChart(activeRecords, openDrill);
     }
   };
 
@@ -1752,17 +2022,50 @@ var ChartManager = (function () {
     var state = DataManager.getState();
     var f = FilterEngine.currentFilters();
 
-    var active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f);
-    var completedFiltered = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { ignorePriority: true });
+    // Tab-specific month filters
+    var tab1Month = FilterEngine.getTabMonth('priority');
+    var tab2Month = FilterEngine.getTabMonth('process');
+    var tab3Month = FilterEngine.getTabMonth('breakdown');
 
-    lastActive = active;
-    lastCompleted = completedFiltered;
+    // Tab 1 records (Priority)
+    var tab1Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab1Month });
+    var tab1Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab1Month, ignorePriority: true });
 
-    renderKpis(active, completedFiltered);
-    renderTable(active);
+    // Tab 2 records (Process & SLA)
+    var tab2Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab2Month });
+    var tab2Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab2Month, ignorePriority: true });
 
-    if (CHART_RENDERERS[currentTab]) {
-      CHART_RENDERERS[currentTab]();
+    // Tab 3 records (Team Breakdown)
+    var tab3Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab3Month });
+
+    // Update Tab Toolbar stats labels
+    updateTabStats('priority', tab1Month, tab1Active.length);
+    updateTabStats('process', tab2Month, tab2Active.length, tab2Completed.length);
+    updateTabStats('breakdown', tab3Month, tab3Active.length);
+
+    // Contextual records for Drilldown Modal based on current active tab
+    if (currentTab === 'priority') {
+      lastActive = tab1Active;
+      lastCompleted = tab1Completed;
+    } else if (currentTab === 'process') {
+      lastActive = tab2Active;
+      lastCompleted = tab2Completed;
+    } else if (currentTab === 'breakdown') {
+      lastActive = tab3Active;
+      lastCompleted = [];
+    }
+
+    // Render Tab 1 Priority KPIs & Table
+    renderKpis(tab1Active, tab1Completed);
+    renderTable(tab1Active);
+
+    // Render charts for currently active tab
+    if (currentTab === 'priority') {
+      CHART_RENDERERS.priority(tab1Active, tab1Completed);
+    } else if (currentTab === 'process') {
+      CHART_RENDERERS.process(tab2Active, tab2Completed);
+    } else if (currentTab === 'breakdown') {
+      CHART_RENDERERS.breakdown(tab3Active);
     }
   }
 
@@ -1799,9 +2102,8 @@ var ChartManager = (function () {
         currentTab = btn.getAttribute('data-tab');
         var panel = document.getElementById('tab-' + currentTab);
         if (panel) panel.classList.add('active');
-        if (CHART_RENDERERS[currentTab]) {
-          CHART_RENDERERS[currentTab]();
-        }
+        FilterEngine.syncTopMonth(currentTab);
+        renderAll();
       });
     });
 

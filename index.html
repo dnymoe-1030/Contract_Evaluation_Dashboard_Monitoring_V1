@@ -56,6 +56,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
       <input type="text" id="fSearch" placeholder="Search name or company...">
     </div>
+    <select id="fMonth" title="Filter by Month for Active Tab">
+      <option value="">All Months</option>
+    </select>
     <select id="fStatus">
       <option value="">All Status</option>
       <option value="On Progress">On Progress</option>
@@ -72,6 +75,21 @@
 
   <!-- ================= TAB 1: PRIORITY ================= -->
   <div class="tabpanel active" id="tab-priority">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab1" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab1" class="tab-month-select" aria-label="Filter Tab 1 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab1MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="kpi-row" id="kpiRow"></div>
 
     <div class="section grid-2">
@@ -118,6 +136,21 @@
 
   <!-- ================= TAB 2: PROCESS ================= -->
   <div class="tabpanel" id="tab-process">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab2" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab2" class="tab-month-select" aria-label="Filter Tab 2 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab2MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">Evaluation Process Stage (Remarks column)</div></div>
@@ -141,6 +174,21 @@
 
   <!-- ================= TAB 3: BREAKDOWN ================= -->
   <div class="tabpanel" id="tab-breakdown">
+    <div class="tab-toolbar">
+      <div class="tab-toolbar-left">
+        <label for="fMonthTab3" class="tab-toolbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Contract Month:
+        </label>
+        <select id="fMonthTab3" class="tab-month-select" aria-label="Filter Tab 3 by Month">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div class="tab-toolbar-right">
+        <span class="tab-toolbar-stats" id="tab3MonthStats">Showing all contract months</span>
+      </div>
+    </div>
+
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">On Progress Backlog by Pillar</div></div>

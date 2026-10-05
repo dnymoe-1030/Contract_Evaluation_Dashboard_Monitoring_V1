@@ -23,6 +23,21 @@
   var drillBody = document.getElementById('drillBody');
   var drillClose = document.getElementById('drillClose');
 
+  var tab1MonthStats = document.getElementById('tab1MonthStats');
+  var tab2MonthStats = document.getElementById('tab2MonthStats');
+  var tab3MonthStats = document.getElementById('tab3MonthStats');
+
+  function updateTabStats(tabKey, month, activeCount, compCount) {
+    var el = tabKey === 'priority' ? tab1MonthStats : (tabKey === 'process' ? tab2MonthStats : tab3MonthStats);
+    if (!el) return;
+    var monthText = month ? ('Contract Month: <b>' + fmtMonth(month) + '</b> &middot; ') : 'All contract months &middot; ';
+    if (tabKey === 'process') {
+      el.innerHTML = monthText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
+    } else {
+      el.innerHTML = monthText + '<b>' + activeCount + '</b> active cases';
+    }
+  }
+
   // ---------------------------------------------------------------
   // Drilldown Modal
   // ---------------------------------------------------------------
@@ -182,18 +197,18 @@
   // Chart Dispatcher
   // ---------------------------------------------------------------
   var CHART_RENDERERS = {
-    priority: function () {
-      ChartManager.renderReminderChart(lastActive, openDrill);
-      ChartManager.renderTimelineChart(lastActive, openDrill);
+    priority: function (activeRecords, completedRecords) {
+      ChartManager.renderReminderChart(activeRecords, openDrill);
+      ChartManager.renderTimelineChart(activeRecords, openDrill);
     },
-    process: function () {
-      ChartManager.renderFunnelChart(lastActive, openDrill);
-      ChartManager.renderSlaChart(lastCompleted, openDrill);
-      ChartManager.renderWesignChart(lastActive, openDrill);
+    process: function (activeRecords, completedRecords) {
+      ChartManager.renderFunnelChart(activeRecords, openDrill);
+      ChartManager.renderSlaChart(completedRecords, openDrill);
+      ChartManager.renderWesignChart(activeRecords, openDrill);
     },
-    breakdown: function () {
-      ChartManager.renderPillarChart(lastActive, openDrill);
-      ChartManager.renderPicChart(lastActive, openDrill);
+    breakdown: function (activeRecords) {
+      ChartManager.renderPillarChart(activeRecords, openDrill);
+      ChartManager.renderPicChart(activeRecords, openDrill);
     }
   };
 
@@ -205,17 +220,50 @@
     var state = DataManager.getState();
     var f = FilterEngine.currentFilters();
 
-    var active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f);
-    var completedFiltered = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { ignorePriority: true });
+    // Tab-specific month filters
+    var tab1Month = FilterEngine.getTabMonth('priority');
+    var tab2Month = FilterEngine.getTabMonth('process');
+    var tab3Month = FilterEngine.getTabMonth('breakdown');
 
-    lastActive = active;
-    lastCompleted = completedFiltered;
+    // Tab 1 records (Priority)
+    var tab1Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab1Month });
+    var tab1Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab1Month, ignorePriority: true });
 
-    renderKpis(active, completedFiltered);
-    renderTable(active);
+    // Tab 2 records (Process & SLA)
+    var tab2Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab2Month });
+    var tab2Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab2Month, ignorePriority: true });
 
-    if (CHART_RENDERERS[currentTab]) {
-      CHART_RENDERERS[currentTab]();
+    // Tab 3 records (Team Breakdown)
+    var tab3Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab3Month });
+
+    // Update Tab Toolbar stats labels
+    updateTabStats('priority', tab1Month, tab1Active.length);
+    updateTabStats('process', tab2Month, tab2Active.length, tab2Completed.length);
+    updateTabStats('breakdown', tab3Month, tab3Active.length);
+
+    // Contextual records for Drilldown Modal based on current active tab
+    if (currentTab === 'priority') {
+      lastActive = tab1Active;
+      lastCompleted = tab1Completed;
+    } else if (currentTab === 'process') {
+      lastActive = tab2Active;
+      lastCompleted = tab2Completed;
+    } else if (currentTab === 'breakdown') {
+      lastActive = tab3Active;
+      lastCompleted = [];
+    }
+
+    // Render Tab 1 Priority KPIs & Table
+    renderKpis(tab1Active, tab1Completed);
+    renderTable(tab1Active);
+
+    // Render charts for currently active tab
+    if (currentTab === 'priority') {
+      CHART_RENDERERS.priority(tab1Active, tab1Completed);
+    } else if (currentTab === 'process') {
+      CHART_RENDERERS.process(tab2Active, tab2Completed);
+    } else if (currentTab === 'breakdown') {
+      CHART_RENDERERS.breakdown(tab3Active);
     }
   }
 
@@ -252,9 +300,8 @@
         currentTab = btn.getAttribute('data-tab');
         var panel = document.getElementById('tab-' + currentTab);
         if (panel) panel.classList.add('active');
-        if (CHART_RENDERERS[currentTab]) {
-          CHART_RENDERERS[currentTab]();
-        }
+        FilterEngine.syncTopMonth(currentTab);
+        renderAll();
       });
     });
 
