@@ -207,12 +207,12 @@
     color:var(--text-secondary); text-transform:uppercase; letter-spacing:.04em;
   }
   .tab-toolbar-label svg{ width:15px; height:15px; stroke:var(--accent); }
-  .tab-month-select{
+  .tab-year-select, .tab-month-select{
     font-family:var(--font-ui); font-size:12.5px; font-weight:600; color:var(--text-primary);
     background:var(--surface-raised); border:1px solid var(--border-strong); border-radius:8px;
     padding:6px 12px; outline:none; min-height:34px; cursor:pointer;
   }
-  .tab-month-select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .tab-year-select:focus, .tab-month-select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
   .tab-toolbar-right{
     display:flex; align-items:center; gap:8px;
   }

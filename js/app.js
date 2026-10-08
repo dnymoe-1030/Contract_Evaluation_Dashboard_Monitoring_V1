@@ -27,14 +27,22 @@
   var tab2MonthStats = document.getElementById('tab2MonthStats');
   var tab3MonthStats = document.getElementById('tab3MonthStats');
 
-  function updateTabStats(tabKey, month, activeCount, compCount) {
+  function updateTabStats(tabKey, year, month, activeCount, compCount) {
     var el = tabKey === 'priority' ? tab1MonthStats : (tabKey === 'process' ? tab2MonthStats : tab3MonthStats);
     if (!el) return;
-    var monthText = month ? ('Contract Month: <b>' + fmtMonth(month) + '</b> &middot; ') : 'All contract months &middot; ';
-    if (tabKey === 'process') {
-      el.innerHTML = monthText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
+    var filterText = '';
+    if (month) {
+      filterText = 'Contract: <b>' + fmtMonth(month) + '</b> &middot; ';
+    } else if (year) {
+      filterText = 'Year: <b>' + year + '</b> &middot; ';
     } else {
-      el.innerHTML = monthText + '<b>' + activeCount + '</b> active cases';
+      filterText = 'All contract years &middot; ';
+    }
+
+    if (tabKey === 'process') {
+      el.innerHTML = filterText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
+    } else {
+      el.innerHTML = filterText + '<b>' + activeCount + '</b> active cases';
     }
   }
 
@@ -220,26 +228,31 @@
     var state = DataManager.getState();
     var f = FilterEngine.currentFilters();
 
-    // Tab-specific month filters
+    // Tab-specific year & month filters
+    var tab1Year = FilterEngine.getTabYear('priority');
     var tab1Month = FilterEngine.getTabMonth('priority');
+
+    var tab2Year = FilterEngine.getTabYear('process');
     var tab2Month = FilterEngine.getTabMonth('process');
+
+    var tab3Year = FilterEngine.getTabYear('breakdown');
     var tab3Month = FilterEngine.getTabMonth('breakdown');
 
     // Tab 1 records (Priority)
-    var tab1Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab1Month });
-    var tab1Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab1Month, ignorePriority: true });
+    var tab1Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab1Year, month: tab1Month });
+    var tab1Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { year: tab1Year, month: tab1Month, ignorePriority: true });
 
     // Tab 2 records (Process & SLA)
-    var tab2Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab2Month });
-    var tab2Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { month: tab2Month, ignorePriority: true });
+    var tab2Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab2Year, month: tab2Month });
+    var tab2Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { year: tab2Year, month: tab2Month, ignorePriority: true });
 
     // Tab 3 records (Team Breakdown)
-    var tab3Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { month: tab3Month });
+    var tab3Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab3Year, month: tab3Month });
 
     // Update Tab Toolbar stats labels
-    updateTabStats('priority', tab1Month, tab1Active.length);
-    updateTabStats('process', tab2Month, tab2Active.length, tab2Completed.length);
-    updateTabStats('breakdown', tab3Month, tab3Active.length);
+    updateTabStats('priority', tab1Year, tab1Month, tab1Active.length);
+    updateTabStats('process', tab2Year, tab2Month, tab2Active.length, tab2Completed.length);
+    updateTabStats('breakdown', tab3Year, tab3Month, tab3Active.length);
 
     // Contextual records for Drilldown Modal based on current active tab
     if (currentTab === 'priority') {
@@ -300,7 +313,7 @@
         currentTab = btn.getAttribute('data-tab');
         var panel = document.getElementById('tab-' + currentTab);
         if (panel) panel.classList.add('active');
-        FilterEngine.syncTopMonth(currentTab);
+        FilterEngine.syncTopFilters(currentTab);
         renderAll();
       });
     });
