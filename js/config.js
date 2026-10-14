@@ -11,7 +11,7 @@ var GSHEET_CONFIG = {
   // ID Tab / Lembar kerja spesifik (gid dari URL):
   gid: '2113128387',
   // Nama Sheet / Tab (opsional jika gid sudah ditentukan):
-  sheetName: '',
+  sheetName: 'Contract & Probation Evaluation',
   // URL Custom CSV atau Apps Script jika ada:
   customEndpoint: '',
   // Status sinkronisasi live
@@ -58,6 +58,8 @@ var SLA_BADGE_CLASS = {
 // Modal Table Headers
 var ACTIVE_HEADERS = ['Priority', 'Employee Name', 'Pillar / Company', 'Days Remaining', 'End of Contract', 'Process Stage', 'SM Reminders', 'SM PIC'];
 var COMPLETED_HEADERS = ['Status', 'Employee Name', 'Pillar / Company', 'End of Contract', 'SLA', 'Process Stage', 'SM PIC'];
+var HIRING_HEADERS = ['Status SLA', 'NIK', 'Employee Name', 'Company / Entity', 'Position', 'Effective Date', 'Action & Reason', 'Document Checklist', 'Manage By'];
+var SEPARATION_HEADERS = ['Priority', 'Personnel No', 'Employee Name', 'Company / Entity', 'Last Working Date', 'Deadline', 'Offboarding Status', 'Exit Clearance', 'Document Status', 'SM PIC'];
 
 // Utility Helpers
 function cssVar(name) {

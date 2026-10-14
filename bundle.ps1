@@ -46,10 +46,13 @@ function ReadFile($rel) {
 
 $cssContent     = ReadFile "css\dashboard.css"
 $snapshotJson   = ReadFile "data\snapshot.json"
+$snapshotHiring = ReadFile "data\snapshot_hiring.json"
+$snapshotSep    = ReadFile "data\snapshot_separation.json"
 $jsConfig       = ReadFile "js\config.js"
 $jsDataManager  = ReadFile "js\data-manager.js"
 $jsFilter       = ReadFile "js\filter.js"
 $jsCharts       = ReadFile "js\charts.js"
+$jsHiringSep    = ReadFile "js\hiring-separation.js"
 $jsApp          = ReadFile "js\app.js"
 $indexHtml      = ReadFile "index.html"
 
@@ -71,7 +74,20 @@ $combinedJs = @"
 <script id="raw-data" type="application/json">
 $snapshotJson
 </script>
+<script id="raw-data-hiring" type="application/json">
+$snapshotHiring
+</script>
+<script id="raw-data-separation" type="application/json">
+$snapshotSep
+</script>
 <script>
+try {
+  var rawH = document.getElementById('raw-data-hiring');
+  if (rawH && rawH.textContent.trim()) window.SNAPSHOT_HIRING = JSON.parse(rawH.textContent);
+  var rawS = document.getElementById('raw-data-separation');
+  if (rawS && rawS.textContent.trim()) window.SNAPSHOT_SEPARATION = JSON.parse(rawS.textContent);
+} catch(e) { console.warn('Could not parse embedded snapshots:', e); }
+
 // --- js/config.js ---
 $jsConfig
 
@@ -83,6 +99,9 @@ $jsFilter
 
 // --- js/charts.js ---
 $jsCharts
+
+// --- js/hiring-separation.js ---
+$jsHiringSep
 
 // --- js/app.js ---
 $jsApp

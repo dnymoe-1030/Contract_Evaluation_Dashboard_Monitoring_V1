@@ -22,8 +22,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.5 6v5.6C4.5 16.3 7.7 20 12 21.5c4.3-1.5 7.5-5.2 7.5-9.9V6L12 3.2Z"/><path d="M9 12.2l2.1 2.1 4-4.3"/></svg>
       </div>
       <div class="brand-text">
-        <h1>Contract Evaluation Monitor</h1>
-        <p>Service Management &middot; BAU Monitoring Tool</p>
+        <h1 id="brandModuleTitle">Contract Evaluation Monitor</h1>
+        <p>Service Management &middot; BAU Monitoring Suite</p>
       </div>
     </div>
     <div class="asof">
@@ -33,6 +33,24 @@
       <span id="dataSourceBadge" class="source-badge snapshot">Snapshot</span>
     </div>
   </div>
+
+  <!-- LEVEL 1: Top-Level Module Navigation -->
+  <div class="module-nav" id="moduleNav">
+    <button class="mod-btn active" data-module="contract" id="modContract">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Contract Evaluation Monitor
+    </button>
+    <button class="mod-btn" data-module="hiring" id="modHiring">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Hiring Monitoring
+    </button>
+    <button class="mod-btn" data-module="separation" id="modSeparation">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Separation Monitor
+    </button>
+  </div>
+
+  <!-- LEVEL 2: Sub-Tabs for Contract Evaluation Module -->
   <div class="tabs" id="tabButtons">
     <button class="tab-btn active" data-tab="priority">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 9.5v4.2"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg> Priority &amp; Reminders
@@ -46,7 +64,7 @@
   </div>
 </div>
 
-<div class="wrap">
+<div class="wrap" id="module-view-contract">
 
   <div class="filterbar">
     <span class="fi-label">
@@ -56,12 +74,21 @@
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
       <input type="text" id="fSearch" placeholder="Search name or company...">
     </div>
-    <select id="fYear" title="Filter by Year">
-      <option value="">All Years</option>
-    </select>
-    <select id="fMonth" title="Filter by Month for Active Tab">
-      <option value="">All Months</option>
-    </select>
+    <div class="datepicker-group" title="Filter by End of Contract Date Range">
+      <span class="datepicker-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Contract End:
+      </span>
+      <div class="datepicker-col">
+        <label for="fDateFrom" class="datepicker-label">From</label>
+        <input type="date" id="fDateFrom" aria-label="End of Contract From Date">
+      </div>
+      <span class="datepicker-sep">&ndash;</span>
+      <div class="datepicker-col">
+        <label for="fDateTo" class="datepicker-label">To</label>
+        <input type="date" id="fDateTo" aria-label="End of Contract To Date">
+      </div>
+    </div>
     <select id="fStatus">
       <option value="">All Status</option>
       <option value="On Progress">On Progress</option>
@@ -71,35 +98,16 @@
     <select id="fHrbp"><option value="">All HRBPs</option></select>
     <select id="fPic"><option value="">All PICs</option></select>
     <select id="fPriority"><option value="">All Priorities</option></select>
-    <button class="chip-reset" id="fReset">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg> Reset
-    </button>
+    <div class="filterbar-right">
+      <span class="filter-stats" id="filterStats">Showing all contracts</span>
+      <button class="chip-reset" id="fReset" title="Reset all filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg> Reset
+      </button>
+    </div>
   </div>
 
   <!-- ================= TAB 1: PRIORITY ================= -->
   <div class="tabpanel active" id="tab-priority">
-    <div class="tab-toolbar">
-      <div class="tab-toolbar-left">
-        <label for="fYearTab1" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Year:
-        </label>
-        <select id="fYearTab1" class="tab-year-select" aria-label="Filter Tab 1 by Year">
-          <option value="">All Years</option>
-        </select>
-        <label for="fMonthTab1" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-          Month:
-        </label>
-        <select id="fMonthTab1" class="tab-month-select" aria-label="Filter Tab 1 by Month">
-          <option value="">All Months</option>
-        </select>
-      </div>
-      <div class="tab-toolbar-right">
-        <span class="tab-toolbar-stats" id="tab1MonthStats">Showing all contracts</span>
-      </div>
-    </div>
-
     <div class="kpi-row" id="kpiRow"></div>
 
     <div class="section grid-2">
@@ -146,28 +154,6 @@
 
   <!-- ================= TAB 2: PROCESS ================= -->
   <div class="tabpanel" id="tab-process">
-    <div class="tab-toolbar">
-      <div class="tab-toolbar-left">
-        <label for="fYearTab2" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Year:
-        </label>
-        <select id="fYearTab2" class="tab-year-select" aria-label="Filter Tab 2 by Year">
-          <option value="">All Years</option>
-        </select>
-        <label for="fMonthTab2" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-          Month:
-        </label>
-        <select id="fMonthTab2" class="tab-month-select" aria-label="Filter Tab 2 by Month">
-          <option value="">All Months</option>
-        </select>
-      </div>
-      <div class="tab-toolbar-right">
-        <span class="tab-toolbar-stats" id="tab2MonthStats">Showing all contracts</span>
-      </div>
-    </div>
-
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">Evaluation Process Stage (Remarks column)</div></div>
@@ -191,28 +177,6 @@
 
   <!-- ================= TAB 3: BREAKDOWN ================= -->
   <div class="tabpanel" id="tab-breakdown">
-    <div class="tab-toolbar">
-      <div class="tab-toolbar-left">
-        <label for="fYearTab3" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Year:
-        </label>
-        <select id="fYearTab3" class="tab-year-select" aria-label="Filter Tab 3 by Year">
-          <option value="">All Years</option>
-        </select>
-        <label for="fMonthTab3" class="tab-toolbar-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-          Month:
-        </label>
-        <select id="fMonthTab3" class="tab-month-select" aria-label="Filter Tab 3 by Month">
-          <option value="">All Months</option>
-        </select>
-      </div>
-      <div class="tab-toolbar-right">
-        <span class="tab-toolbar-stats" id="tab3MonthStats">Showing all contracts</span>
-      </div>
-    </div>
-
     <div class="section grid-2">
       <div class="card">
         <div class="card-head"><div class="card-title">On Progress Backlog by Pillar</div></div>
@@ -232,7 +196,200 @@
     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2"/><circle cx="12" cy="8.2" r="0.9" fill="currentColor" stroke="none"/></svg>
     <span><b>About this data:</b> This dashboard monitors contract evaluation workflow from the Service Management team. The Priority logic (URGENT / HIGH / MEDIUM / LOW) highlights upcoming contract renewals. Supports automatic live sync with Google Sheets or fallback local snapshot data.</span>
   </div>
+</div>
 
+<!-- ================= MODULE 2: HIRING MONITORING ================= -->
+<div class="wrap" id="module-view-hiring" style="display:none;">
+  <div class="filterbar" id="hiringFilterbar">
+    <span class="fi-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.3V18l-4 2v-7.7L4 5Z"/></svg> Filter
+    </span>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+      <input type="text" id="hSearch" placeholder="Search name, NIK, or position...">
+    </div>
+    <div class="datepicker-group" title="Filter by Effective Date Range">
+      <span class="datepicker-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Effective Date:
+      </span>
+      <div class="datepicker-col">
+        <label for="hDateFrom" class="datepicker-label">From</label>
+        <input type="date" id="hDateFrom" aria-label="Effective Date From">
+      </div>
+      <span class="datepicker-sep">&ndash;</span>
+      <div class="datepicker-col">
+        <label for="hDateTo" class="datepicker-label">To</label>
+        <input type="date" id="hDateTo" aria-label="Effective Date To">
+      </div>
+    </div>
+    <select id="hMonth"><option value="">All Months</option></select>
+    <select id="hCompany"><option value="">All Companies</option></select>
+    <select id="hActionType"><option value="">All Action Types</option></select>
+    <select id="hSla"><option value="">All SLA</option><option value="Within SLA">Within SLA</option><option value="Over SLA">Over SLA</option></select>
+    <select id="hManage"><option value="">All Manage By</option><option value="SM">SM</option><option value="Non SM">Non SM</option></select>
+    <div class="filterbar-right">
+      <span class="filter-stats" id="hiringStats">Loading hiring data...</span>
+      <button class="chip-reset" id="hReset" title="Reset all filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg> Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Hiring KPI Cards -->
+  <div class="kpi-row" id="hiringKpiRow"></div>
+
+  <!-- Hiring Sections & Charts -->
+  <div class="section grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Hiring Volume by Month</div></div>
+      <div class="card-note">New onboardings and rehire trend over time</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartHiringMonth"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">SLA Performance by Entity</div></div>
+      <div class="card-note">Fulfillment of requests (Within SLA vs Over SLA)</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartHiringSla"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Reason for Action &amp; Source</div></div>
+      <div class="card-note">Organization Need vs Replacement vs Rehire</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartHiringReason"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Document Onboarding Checklist Compliance</div></div>
+      <div class="card-note">Overall completeness of 6 mandatory employee records</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartHiringDocs"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Hiring Employee Table -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> Hiring &amp; Onboarding Master List
+      </div>
+      <div class="section-desc">Karyawan baru terdaftar beserta status SLA dan kelengkapan dokumen onboarding</div>
+    </div>
+    <div class="table-scroll">
+      <table id="hiringTable">
+        <thead>
+          <tr>
+            <th>Status SLA</th>
+            <th>NIK &amp; Employee Name</th>
+            <th>Company / Entity</th>
+            <th>Position</th>
+            <th>Effective Date</th>
+            <th>Action &amp; Reason</th>
+            <th>Document Checklist</th>
+            <th>Manage By</th>
+          </tr>
+        </thead>
+        <tbody id="hiringBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODULE 3: SEPARATION MONITOR ================= -->
+<div class="wrap" id="module-view-separation" style="display:none;">
+  <div class="filterbar" id="separationFilterbar">
+    <span class="fi-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.3V18l-4 2v-7.7L4 5Z"/></svg> Filter
+    </span>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+      <input type="text" id="sSearch" placeholder="Search name, ID, or company...">
+    </div>
+    <div class="datepicker-group" title="Filter by Last Working Date Range">
+      <span class="datepicker-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Last Working Date:
+      </span>
+      <div class="datepicker-col">
+        <label for="sDateFrom" class="datepicker-label">From</label>
+        <input type="date" id="sDateFrom" aria-label="Last Working Date From">
+      </div>
+      <span class="datepicker-sep">&ndash;</span>
+      <div class="datepicker-col">
+        <label for="sDateTo" class="datepicker-label">To</label>
+        <input type="date" id="sDateTo" aria-label="Last Working Date To">
+      </div>
+    </div>
+    <select id="sMonth"><option value="">All Months</option></select>
+    <select id="sCompany"><option value="">All Companies</option></select>
+    <select id="sOffboardingStatus"><option value="">All Offboarding Status</option></select>
+    <select id="sClearanceStatus"><option value="">All Clearance Status</option></select>
+    <select id="sDocStatus"><option value="">All Document Status</option></select>
+    <select id="sPic"><option value="">All SM PIC</option></select>
+    <div class="filterbar-right">
+      <span class="filter-stats" id="separationStats">Loading separation data...</span>
+      <button class="chip-reset" id="sReset" title="Reset all filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg> Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Separation KPI Cards -->
+  <div class="kpi-row" id="separationKpiRow"></div>
+
+  <!-- Separation Sections & Charts -->
+  <div class="section grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Offboarding Status Funnel</div></div>
+      <div class="card-note">Progress tahapan proses pemutusan hubungan kerja</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartSepStatus"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Exit Clearance &amp; Document Delivery</div></div>
+      <div class="card-note">Penyelesaian serah terima aset &amp; pengiriman paklaring</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartSepClearance"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Separation Volume by Month</div></div>
+      <div class="card-note">Tren karyawan offboarding per periode bulan</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartSepMonth"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Workload by SM PIC</div></div>
+      <div class="card-note">Kasus ditangani per personil Service Management</div>
+      <div class="chart-box" style="height:260px;"><canvas id="chartSepPic"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Separation Employee Table -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Offboarding &amp; Clearance Action List
+      </div>
+      <div class="section-desc">Monitoring proses exit clearance, paklaring, dan deadline tindak lanjut</div>
+    </div>
+    <div class="table-scroll">
+      <table id="separationTable">
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Personnel No &amp; Name</th>
+            <th>Company / Entity</th>
+            <th>Last Working Date</th>
+            <th>Deadline</th>
+            <th>Offboarding Status</th>
+            <th>Exit Clearance</th>
+            <th>Doc Status</th>
+            <th>SM PIC</th>
+          </tr>
+        </thead>
+        <tbody id="separationBody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- Modal Drilldown -->
@@ -263,6 +420,7 @@
 <script src="js/data-manager.js"></script>
 <script src="js/filter.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/hiring-separation.js"></script>
 <script src="js/app.js"></script>
 
 </body>

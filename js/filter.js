@@ -1,11 +1,12 @@
 /**
  * Service Management Contract Evaluation Monitor
- * Filter Engine & Table Sorting (Supports Dynamic Year & Per-Tab Month Filters)
+ * Filter Engine: 2-Column Date Picker (From & To) with Instant Auto-Apply & Reset
  */
 
 var FilterEngine = (function () {
   'use strict';
 
+  // Standard Filters
   var statusSel = document.getElementById('fStatus');
   var pillarSel = document.getElementById('fPillar');
   var hrbpSel = document.getElementById('fHrbp');
@@ -14,100 +15,45 @@ var FilterEngine = (function () {
   var searchInput = document.getElementById('fSearch');
   var resetBtn = document.getElementById('fReset');
 
-  // Year Selectors
-  var yearSel = document.getElementById('fYear');
-  var yearTab1Sel = document.getElementById('fYearTab1');
-  var yearTab2Sel = document.getElementById('fYearTab2');
-  var yearTab3Sel = document.getElementById('fYearTab3');
-
-  // Month Selectors
-  var monthSel = document.getElementById('fMonth');
-  var monthTab1Sel = document.getElementById('fMonthTab1');
-  var monthTab2Sel = document.getElementById('fMonthTab2');
-  var monthTab3Sel = document.getElementById('fMonthTab3');
+  // Date Picker Selectors (From & To)
+  var dateFromSel = document.getElementById('fDateFrom');
+  var dateToSel = document.getElementById('fDateTo');
 
   var sortState = { key: 'priorityRank', dir: 1 };
   var currentTab = 'priority';
 
-  var tabYears = {
-    priority: '',
-    process: '',
-    breakdown: ''
-  };
-
-  var tabMonths = {
-    priority: '',
-    process: '',
-    breakdown: ''
+  // Unified Contract End Date Filter State (From & To)
+  var filterState = {
+    dateFrom: '',
+    dateTo: ''
   };
 
   var dataCache = {
     allRecords: [],
     onProgressRecords: [],
-    sortedYears: [],
-    allYearMap: {},
-    opYearMap: {},
-    compYearMap: {},
-    allMonthMap: {},
-    opMonthMap: {},
-    compMonthMap: {}
+    minDate: '',
+    maxDate: ''
   };
 
-  function refreshMonthDropdown(tabKey) {
-    var yr = tabYears[tabKey] || '';
-    var targetMonthSel = tabKey === 'priority' ? monthTab1Sel : (tabKey === 'process' ? monthTab2Sel : monthTab3Sel);
-    if (!targetMonthSel) return;
+  /**
+   * Synchronize From & To Date Picker inputs and min/max constraints
+   */
+  function syncAllDateControls() {
+    if (dateFromSel) dateFromSel.value = filterState.dateFrom || '';
+    if (dateToSel) dateToSel.value = filterState.dateTo || '';
 
-    var currentChosenMonth = tabMonths[tabKey] || '';
-    if (yr && currentChosenMonth && currentChosenMonth.slice(0, 4) !== yr) {
-      currentChosenMonth = '';
-      tabMonths[tabKey] = '';
+    // Update dynamic min/max constraints
+    if (dateToSel) {
+      dateToSel.min = filterState.dateFrom || dataCache.minDate || '';
     }
-
-    var allMonths = Object.keys(dataCache.allMonthMap).sort().reverse();
-    var filteredMonths = yr ? allMonths.filter(function (m) { return m.slice(0, 4) === yr; }) : allMonths;
-
-    targetMonthSel.innerHTML = '<option value="">All Months' + (yr ? ' (' + yr + ')' : '') + '</option>';
-    filteredMonths.forEach(function (m) {
-      var o = document.createElement('option');
-      o.value = m;
-      if (tabKey === 'process') {
-        var tot = dataCache.allMonthMap[m] || 0;
-        var op = dataCache.opMonthMap[m] || 0;
-        var comp = dataCache.compMonthMap[m] || 0;
-        var lbl = fmtMonth(m) + ' (' + tot + ' total';
-        if (op > 0 && comp > 0) lbl += ': ' + op + ' act, ' + comp + ' comp';
-        lbl += ')';
-        o.textContent = lbl;
-      } else {
-        var opCnt = dataCache.opMonthMap[m] || 0;
-        o.textContent = fmtMonth(m) + ' (' + opCnt + (opCnt === 1 ? ' case)' : ' cases)');
-      }
-      targetMonthSel.appendChild(o);
-    });
-
-    targetMonthSel.value = currentChosenMonth;
-
-    if (currentTab === tabKey) {
-      syncTopMonthOptions(yr, currentChosenMonth);
+    if (dateFromSel) {
+      dateFromSel.max = filterState.dateTo || dataCache.maxDate || '';
     }
   }
 
-  function syncTopMonthOptions(yr, currentChosenMonth) {
-    if (!monthSel) return;
-    var allMonths = Object.keys(dataCache.allMonthMap).sort().reverse();
-    var filteredMonths = yr ? allMonths.filter(function (m) { return m.slice(0, 4) === yr; }) : allMonths;
-    monthSel.innerHTML = '<option value="">All Months' + (yr ? ' (' + yr + ')' : '') + '</option>';
-    filteredMonths.forEach(function (m) {
-      var tot = dataCache.allMonthMap[m] || 0;
-      var o = document.createElement('option');
-      o.value = m;
-      o.textContent = fmtMonth(m) + ' (' + tot + ' cases)';
-      monthSel.appendChild(o);
-    });
-    monthSel.value = currentChosenMonth || '';
-  }
-
+  /**
+   * Initialize filter dropdown options and calculate bounds
+   */
   function initOptions(allRecords, onProgressRecords) {
     dataCache.allRecords = allRecords || [];
     dataCache.onProgressRecords = onProgressRecords || [];
@@ -142,69 +88,37 @@ var FilterEngine = (function () {
       });
     }
 
-    // Dynamic Year & Month calculation
-    var allYearMap = {}, opYearMap = {}, compYearMap = {};
-    var allMonthMap = {}, opMonthMap = {}, compMonthMap = {};
-
+    // Calculate dataset min & max End of Contract dates
+    var minDate = '', maxDate = '';
     (allRecords || []).forEach(function (r) {
-      if (r.endOfContract && /^\d{4}/.test(r.endOfContract)) {
-        var y = r.endOfContract.slice(0, 4);
-        allYearMap[y] = (allYearMap[y] || 0) + 1;
-        if ((r.status || '').trim() === 'On Progress') {
-          opYearMap[y] = (opYearMap[y] || 0) + 1;
-        } else if ((r.status || '').trim() === 'Completed') {
-          compYearMap[y] = (compYearMap[y] || 0) + 1;
-        }
-
-        if (/^\d{4}-\d{2}/.test(r.endOfContract)) {
-          var m = r.endOfContract.slice(0, 7);
-          allMonthMap[m] = (allMonthMap[m] || 0) + 1;
-          if ((r.status || '').trim() === 'On Progress') {
-            opMonthMap[m] = (opMonthMap[m] || 0) + 1;
-          } else if ((r.status || '').trim() === 'Completed') {
-            compMonthMap[m] = (compMonthMap[m] || 0) + 1;
-          }
-        }
+      var eoc = r.endOfContract;
+      if (eoc && /^\d{4}-\d{2}-\d{2}/.test(eoc)) {
+        if (!minDate || eoc < minDate) minDate = eoc;
+        if (!maxDate || eoc > maxDate) maxDate = eoc;
       }
     });
 
-    var sortedYears = Object.keys(allYearMap).sort().reverse();
-    dataCache.sortedYears = sortedYears;
-    dataCache.allYearMap = allYearMap;
-    dataCache.opYearMap = opYearMap;
-    dataCache.compYearMap = compYearMap;
-    dataCache.allMonthMap = allMonthMap;
-    dataCache.opMonthMap = opMonthMap;
-    dataCache.compMonthMap = compMonthMap;
+    dataCache.minDate = minDate;
+    dataCache.maxDate = maxDate;
 
-    // Populate Year dropdowns
-    function populateYearSelect(selectEl, countMap) {
-      if (!selectEl) return;
-      selectEl.innerHTML = '<option value="">All Years</option>';
-      sortedYears.forEach(function (y) {
-        var cnt = countMap[y] || 0;
-        var o = document.createElement('option');
-        o.value = y;
-        o.textContent = y + ' (' + cnt + (cnt === 1 ? ' case)' : ' cases)');
-        selectEl.appendChild(o);
-      });
-    }
+    // Set min & max attributes on date inputs for calendar bounds
+    [dateFromSel, dateToSel].forEach(function (inp) {
+      if (inp) {
+        if (minDate) inp.min = minDate;
+        if (maxDate) inp.max = maxDate;
+      }
+    });
 
-    populateYearSelect(yearTab1Sel, opYearMap);
-    populateYearSelect(yearTab2Sel, allYearMap);
-    populateYearSelect(yearTab3Sel, opYearMap);
-    populateYearSelect(yearSel, allYearMap);
-
-    // Initial month population
-    refreshMonthDropdown('priority');
-    refreshMonthDropdown('process');
-    refreshMonthDropdown('breakdown');
+    syncAllDateControls();
   }
 
+  /**
+   * Get currently active filters object
+   */
   function currentFilters() {
     return {
-      year: yearSel ? yearSel.value : '',
-      month: monthSel ? monthSel.value : '',
+      dateFrom: filterState.dateFrom || '',
+      dateTo: filterState.dateTo || '',
       status: statusSel ? statusSel.value : '',
       pillar: pillarSel ? pillarSel.value : '',
       hrbp: hrbpSel ? hrbpSel.value : '',
@@ -214,17 +128,28 @@ var FilterEngine = (function () {
     };
   }
 
+  /**
+   * Filter record dataset based on active filter criteria
+   */
   function applyFilters(list, f, opts) {
     opts = opts || {};
-    var yearFilter = (opts.year !== undefined) ? opts.year : f.year;
-    var monthFilter = (opts.month !== undefined) ? opts.month : f.month;
+    var dateFromFilter = (opts.dateFrom !== undefined) ? opts.dateFrom : (f.dateFrom || '');
+    var dateToFilter = (opts.dateTo !== undefined) ? opts.dateTo : (f.dateTo || '');
+
     return (list || []).filter(function (r) {
-      if (yearFilter) {
-        if (!r.endOfContract || r.endOfContract.slice(0, 4) !== yearFilter) return false;
+      if (!r) return false;
+      var eoc = r.endOfContract;
+
+      // 1. Date Range filters (Exact Start & End Date filtering)
+      if (dateFromFilter) {
+        if (!eoc || eoc < dateFromFilter) return false;
       }
-      if (monthFilter) {
-        if (!r.endOfContract || r.endOfContract.slice(0, 7) !== monthFilter) return false;
+      if (dateToFilter) {
+        if (!eoc || eoc > dateToFilter) return false;
       }
+
+      // 2. Categorical filters
+      if (f.status && r.status !== f.status) return false;
       if (f.pillar && r.pillar !== f.pillar) return false;
       if (f.hrbp && r.hrbp !== f.hrbp) return false;
       if (f.pic && r.pic !== f.pic) return false;
@@ -237,39 +162,29 @@ var FilterEngine = (function () {
     });
   }
 
-  function getTabYear(tabKey) {
-    return tabYears[tabKey] || '';
+  function getDateFrom() {
+    return filterState.dateFrom || '';
   }
 
-  function getTabMonth(tabKey) {
-    return tabMonths[tabKey] || '';
+  function getDateTo() {
+    return filterState.dateTo || '';
   }
 
-  function setTabYear(tabKey, val) {
-    tabYears[tabKey] = val || '';
-    if (tabKey === 'priority' && yearTab1Sel) yearTab1Sel.value = tabYears[tabKey];
-    if (tabKey === 'process' && yearTab2Sel) yearTab2Sel.value = tabYears[tabKey];
-    if (tabKey === 'breakdown' && yearTab3Sel) yearTab3Sel.value = tabYears[tabKey];
-    if (tabKey === currentTab && yearSel) yearSel.value = tabYears[tabKey];
-    refreshMonthDropdown(tabKey);
-  }
-
-  function setTabMonth(tabKey, val) {
-    tabMonths[tabKey] = val || '';
-    if (tabKey === 'priority' && monthTab1Sel) monthTab1Sel.value = tabMonths[tabKey];
-    if (tabKey === 'process' && monthTab2Sel) monthTab2Sel.value = tabMonths[tabKey];
-    if (tabKey === 'breakdown' && monthTab3Sel) monthTab3Sel.value = tabMonths[tabKey];
-    if (tabKey === currentTab && monthSel) monthSel.value = tabMonths[tabKey];
+  function setDateRange(fromVal, toVal, onChangeCallback) {
+    filterState.dateFrom = fromVal || '';
+    filterState.dateTo = toVal || '';
+    syncAllDateControls();
+    if (typeof onChangeCallback === 'function') onChangeCallback();
   }
 
   function syncTopFilters(activeTab) {
     currentTab = activeTab;
-    if (yearSel) {
-      yearSel.value = tabYears[activeTab] || '';
-    }
-    syncTopMonthOptions(tabYears[activeTab] || '', tabMonths[activeTab] || '');
+    syncAllDateControls();
   }
 
+  /**
+   * Reset all filters to default state (clears date range, search, categories)
+   */
   function resetFilters(onResetCallback) {
     if (statusSel) statusSel.value = '';
     if (pillarSel) pillarSel.value = '';
@@ -277,120 +192,80 @@ var FilterEngine = (function () {
     if (picSel) picSel.value = '';
     if (prioritySel) prioritySel.value = '';
     if (searchInput) searchInput.value = '';
-    
-    // Reset Year & Month filters
-    tabYears.priority = '';
-    tabYears.process = '';
-    tabYears.breakdown = '';
 
-    tabMonths.priority = '';
-    tabMonths.process = '';
-    tabMonths.breakdown = '';
+    filterState.dateFrom = '';
+    filterState.dateTo = '';
 
-    if (yearSel) yearSel.value = '';
-    if (yearTab1Sel) yearTab1Sel.value = '';
-    if (yearTab2Sel) yearTab2Sel.value = '';
-    if (yearTab3Sel) yearTab3Sel.value = '';
+    // Reset calendar min/max bounds
+    [dateFromSel, dateToSel].forEach(function (inp) {
+      if (inp) {
+        inp.value = '';
+        if (dataCache.minDate) inp.min = dataCache.minDate;
+        if (dataCache.maxDate) inp.max = dataCache.maxDate;
+      }
+    });
 
-    refreshMonthDropdown('priority');
-    refreshMonthDropdown('process');
-    refreshMonthDropdown('breakdown');
-    syncTopMonthOptions('', '');
+    syncAllDateControls();
 
     if (typeof onResetCallback === 'function') onResetCallback();
   }
 
+  /**
+   * Event Listeners Registration (Auto-apply on date input/change)
+   */
   function setupEventListeners(onChangeCallback) {
+    // Categorical selects (Auto-apply on change)
     [statusSel, pillarSel, hrbpSel, picSel, prioritySel].forEach(function (el) {
       if (el) el.addEventListener('change', onChangeCallback);
     });
     if (searchInput) searchInput.addEventListener('input', onChangeCallback);
 
-    // Global Year changed
-    if (yearSel) {
-      yearSel.addEventListener('change', function () {
-        var yVal = yearSel.value;
-        tabYears[currentTab] = yVal;
-        if (currentTab === 'priority' && yearTab1Sel) yearTab1Sel.value = yVal;
-        if (currentTab === 'process' && yearTab2Sel) yearTab2Sel.value = yVal;
-        if (currentTab === 'breakdown' && yearTab3Sel) yearTab3Sel.value = yVal;
-        refreshMonthDropdown(currentTab);
-        onChangeCallback();
-      });
+    // Date From input change / input handler (Auto-Apply)
+    if (dateFromSel) {
+      var handleFromChange = function () {
+        var val = this.value || '';
+        filterState.dateFrom = val;
+
+        // Auto-adjust dateTo if dateFrom is greater than dateTo
+        if (filterState.dateFrom && filterState.dateTo && filterState.dateFrom > filterState.dateTo) {
+          filterState.dateTo = filterState.dateFrom;
+        }
+
+        syncAllDateControls();
+        onChangeCallback(); // Auto-apply immediately!
+      };
+
+      dateFromSel.addEventListener('change', handleFromChange);
+      dateFromSel.addEventListener('input', handleFromChange);
     }
 
-    // Global Month changed
-    if (monthSel) {
-      monthSel.addEventListener('change', function () {
-        var mVal = monthSel.value;
-        tabMonths[currentTab] = mVal;
-        if (currentTab === 'priority' && monthTab1Sel) monthTab1Sel.value = mVal;
-        if (currentTab === 'process' && monthTab2Sel) monthTab2Sel.value = mVal;
-        if (currentTab === 'breakdown' && monthTab3Sel) monthTab3Sel.value = mVal;
-        onChangeCallback();
-      });
+    // Date To input change / input handler (Auto-Apply)
+    if (dateToSel) {
+      var handleToChange = function () {
+        var val = this.value || '';
+        filterState.dateTo = val;
+
+        // Auto-adjust dateFrom if dateTo is less than dateFrom
+        if (filterState.dateFrom && filterState.dateTo && filterState.dateTo < filterState.dateFrom) {
+          filterState.dateFrom = filterState.dateTo;
+        }
+
+        syncAllDateControls();
+        onChangeCallback(); // Auto-apply immediately!
+      };
+
+      dateToSel.addEventListener('change', handleToChange);
+      dateToSel.addEventListener('input', handleToChange);
     }
 
-    // Per-tab Year dropdowns changed
-    if (yearTab1Sel) {
-      yearTab1Sel.addEventListener('change', function () {
-        tabYears.priority = yearTab1Sel.value;
-        if (currentTab === 'priority' && yearSel) yearSel.value = yearTab1Sel.value;
-        refreshMonthDropdown('priority');
-        onChangeCallback();
-      });
-    }
-
-    if (yearTab2Sel) {
-      yearTab2Sel.addEventListener('change', function () {
-        tabYears.process = yearTab2Sel.value;
-        if (currentTab === 'process' && yearSel) yearSel.value = yearTab2Sel.value;
-        refreshMonthDropdown('process');
-        onChangeCallback();
-      });
-    }
-
-    if (yearTab3Sel) {
-      yearTab3Sel.addEventListener('change', function () {
-        tabYears.breakdown = yearTab3Sel.value;
-        if (currentTab === 'breakdown' && yearSel) yearSel.value = yearTab3Sel.value;
-        refreshMonthDropdown('breakdown');
-        onChangeCallback();
-      });
-    }
-
-    // Per-tab Month dropdowns changed
-    if (monthTab1Sel) {
-      monthTab1Sel.addEventListener('change', function () {
-        tabMonths.priority = monthTab1Sel.value;
-        if (currentTab === 'priority' && monthSel) monthSel.value = monthTab1Sel.value;
-        onChangeCallback();
-      });
-    }
-
-    if (monthTab2Sel) {
-      monthTab2Sel.addEventListener('change', function () {
-        tabMonths.process = monthTab2Sel.value;
-        if (currentTab === 'process' && monthSel) monthSel.value = monthTab2Sel.value;
-        onChangeCallback();
-      });
-    }
-
-    if (monthTab3Sel) {
-      monthTab3Sel.addEventListener('change', function () {
-        tabMonths.breakdown = monthTab3Sel.value;
-        if (currentTab === 'breakdown' && monthSel) monthSel.value = monthTab3Sel.value;
-        onChangeCallback();
-      });
-    }
-
+    // Reset Button
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         resetFilters(onChangeCallback);
       });
     }
 
-    // Header sorting
+    // Header sorting in Priority Table
     document.querySelectorAll('#priorityTable thead th').forEach(function (th) {
       th.addEventListener('click', function () {
         var key = th.getAttribute('data-key');
@@ -412,10 +287,11 @@ var FilterEngine = (function () {
     initOptions: initOptions,
     currentFilters: currentFilters,
     applyFilters: applyFilters,
-    getTabYear: getTabYear,
-    setTabYear: setTabYear,
-    getTabMonth: getTabMonth,
-    setTabMonth: setTabMonth,
+    getDateFrom: getDateFrom,
+    getDateTo: getDateTo,
+    getTabYear: function () { return filterState.dateFrom ? filterState.dateFrom.slice(0, 4) : ''; },
+    getTabMonth: function () { return filterState.dateFrom ? filterState.dateFrom.slice(0, 7) : ''; },
+    setDateRange: setDateRange,
     syncTopFilters: syncTopFilters,
     resetFilters: resetFilters,
     setupEventListeners: setupEventListeners,

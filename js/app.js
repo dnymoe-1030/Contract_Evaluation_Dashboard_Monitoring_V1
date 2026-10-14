@@ -23,48 +23,93 @@
   var drillBody = document.getElementById('drillBody');
   var drillClose = document.getElementById('drillClose');
 
-  var tab1MonthStats = document.getElementById('tab1MonthStats');
-  var tab2MonthStats = document.getElementById('tab2MonthStats');
-  var tab3MonthStats = document.getElementById('tab3MonthStats');
+  var filterStatsEl = document.getElementById('filterStats');
 
-  function updateTabStats(tabKey, year, month, activeCount, compCount) {
-    var el = tabKey === 'priority' ? tab1MonthStats : (tabKey === 'process' ? tab2MonthStats : tab3MonthStats);
-    if (!el) return;
+  function updateFilterStats(f, activeCount, compCount) {
+    if (!filterStatsEl) filterStatsEl = document.getElementById('filterStats');
+    if (!filterStatsEl) return;
     var filterText = '';
-    if (month) {
-      filterText = 'Contract: <b>' + fmtMonth(month) + '</b> &middot; ';
-    } else if (year) {
-      filterText = 'Year: <b>' + year + '</b> &middot; ';
+    var fromVal = f.dateFrom || f.dateStart;
+    var toVal = f.dateTo || f.dateEnd;
+
+    if (fromVal && toVal) {
+      filterText = 'Contract: <b>' + fmtDate(fromVal) + ' &ndash; ' + fmtDate(toVal) + '</b> &middot; ';
+    } else if (fromVal) {
+      filterText = 'Contract: <b>From ' + fmtDate(fromVal) + '</b> &middot; ';
+    } else if (toVal) {
+      filterText = 'Contract: <b>Until ' + fmtDate(toVal) + '</b> &middot; ';
     } else {
-      filterText = 'All contract years &middot; ';
+      filterText = 'All contract dates &middot; ';
     }
 
-    if (tabKey === 'process') {
-      el.innerHTML = filterText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
+    if (currentTab === 'process') {
+      filterStatsEl.innerHTML = filterText + '<b>' + activeCount + '</b> on progress + <b>' + (compCount || 0) + '</b> completed';
     } else {
-      el.innerHTML = filterText + '<b>' + activeCount + '</b> active cases';
+      filterStatsEl.innerHTML = filterText + '<b>' + activeCount + '</b> active cases';
     }
   }
 
   // ---------------------------------------------------------------
   // Drilldown Modal
   // ---------------------------------------------------------------
+  function hiringDrillRowHtml(r) {
+    var slaBadge = r.sla === 'Within SLA' ? '<span class="badge b-good">Within SLA</span>' : '<span class="badge b-critical">Over SLA</span>';
+    var docPct = r.docs ? r.docs.percent : 0;
+    var docColor = docPct === 100 ? 'var(--good)' : (docPct >= 50 ? 'var(--warning)' : 'var(--critical)');
+    return '<tr>' +
+      '<td>' + slaBadge + '</td>' +
+      '<td>' + (r.id || '—') + '</td>' +
+      '<td><div class="cell-name">' + (r.name || '—') + '</div></td>' +
+      '<td>' + (r.companyName || '—') + '<div class="cell-sub">' + (r.companyCode || '') + '</div></td>' +
+      '<td>' + (r.positionName || '—') + '</td>' +
+      '<td class="mono">' + (r.effectiveDate || '—') + '</td>' +
+      '<td>' + (r.actionType || 'Hiring') + '<div class="cell-sub">' + (r.reason || '') + '</div></td>' +
+      '<td><span style="font-weight:700;color:' + docColor + ';">' + docPct + '% (' + (r.docs ? r.docs.count : 0) + '/6)</span></td>' +
+      '<td><span class="badge ' + (r.manageBy === 'SM' ? 'b-serious' : 'b-neutral') + '">' + (r.manageBy || '—') + '</span></td>' +
+    '</tr>';
+  }
+
+  function separationDrillRowHtml(r) {
+    var priBadge = r.priority === 'URGENT' ? '<span class="badge b-critical">URGENT</span>' :
+                  (r.priority === 'HIGH' ? '<span class="badge b-serious">HIGH</span>' : '<span class="badge b-warning">' + (r.priority || 'MEDIUM') + '</span>');
+    return '<tr>' +
+      '<td>' + priBadge + '</td>' +
+      '<td>' + (r.id || '—') + '</td>' +
+      '<td><div class="cell-name">' + (r.name || '—') + '</div></td>' +
+      '<td>' + (r.companyName || '—') + '</td>' +
+      '<td class="mono">' + (r.lastWorkingDate || '—') + '</td>' +
+      '<td class="mono">' + (r.deadline || '—') + '</td>' +
+      '<td><span class="badge b-neutral">' + (r.offboardingStatus || '—') + '</span></td>' +
+      '<td>' + (r.exitClearanceStatus || '—') + '</td>' +
+      '<td>' + (r.documentStatus || '—') + '</td>' +
+      '<td><b>' + (r.smPic || '—') + '</b></td>' +
+    '</tr>';
+  }
+
   function openDrill(title, records, mode) {
     if (!drillModal) return;
     drillTitleEl.textContent = title;
-    drillSubEl.textContent = records.length + ' employees match this filter & category';
-    var headers = mode === 'completed' ? COMPLETED_HEADERS : ACTIVE_HEADERS;
+    drillSubEl.textContent = records.length + ' records match this category';
+    var headers = mode === 'completed' 
+      ? COMPLETED_HEADERS 
+      : (mode === 'hiring' ? HIRING_HEADERS : (mode === 'separation' ? SEPARATION_HEADERS : ACTIVE_HEADERS));
     drillHead.innerHTML = '<tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr>';
     
     if (!records.length) {
-      drillBody.innerHTML = '<tr><td colspan="' + headers.length + '"><div class="empty-state">' + ICON.inbox + '<div>No data for this category.</div></div></td></tr>';
+      drillBody.innerHTML = '<tr><td colspan="' + headers.length + '"><div class="empty-state">' + ICON.inbox + '<div style="font-size:15px;font-weight:700;margin-top:8px;">No data available</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">No records match this category or active filter.</div></div></td></tr>';
     } else {
-      var sorted = records.slice().sort(function (a, b) {
-        return mode === 'completed' 
-          ? (a.name || '').localeCompare(b.name || '') 
-          : (a.daysRemaining || 0) - (b.daysRemaining || 0);
-      });
-      drillBody.innerHTML = sorted.map(mode === 'completed' ? completedRowHtml : activeRowHtml).join('');
+      if (mode === 'hiring') {
+        drillBody.innerHTML = records.slice(0, 200).map(hiringDrillRowHtml).join('');
+      } else if (mode === 'separation') {
+        drillBody.innerHTML = records.slice(0, 200).map(separationDrillRowHtml).join('');
+      } else {
+        var sorted = records.slice().sort(function (a, b) {
+          return mode === 'completed' 
+            ? (a.name || '').localeCompare(b.name || '') 
+            : (a.daysRemaining || 0) - (b.daysRemaining || 0);
+        });
+        drillBody.innerHTML = sorted.slice(0, 200).map(mode === 'completed' ? completedRowHtml : activeRowHtml).join('');
+      }
     }
     drillModal.hidden = false;
   }
@@ -228,55 +273,28 @@
     var state = DataManager.getState();
     var f = FilterEngine.currentFilters();
 
-    // Tab-specific year & month filters
-    var tab1Year = FilterEngine.getTabYear('priority');
-    var tab1Month = FilterEngine.getTabMonth('priority');
+    // Unified filtered dataset across ALL tabs according to End of Contract date range
+    var activeFiltered = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f);
+    var completedFiltered = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { ignorePriority: true });
 
-    var tab2Year = FilterEngine.getTabYear('process');
-    var tab2Month = FilterEngine.getTabMonth('process');
+    // Update active filter stats in filterbar
+    updateFilterStats(f, activeFiltered.length, completedFiltered.length);
 
-    var tab3Year = FilterEngine.getTabYear('breakdown');
-    var tab3Month = FilterEngine.getTabMonth('breakdown');
-
-    // Tab 1 records (Priority)
-    var tab1Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab1Year, month: tab1Month });
-    var tab1Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { year: tab1Year, month: tab1Month, ignorePriority: true });
-
-    // Tab 2 records (Process & SLA)
-    var tab2Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab2Year, month: tab2Month });
-    var tab2Completed = f.status === 'On Progress' ? [] : FilterEngine.applyFilters(state.completed, f, { year: tab2Year, month: tab2Month, ignorePriority: true });
-
-    // Tab 3 records (Team Breakdown)
-    var tab3Active = f.status === 'Completed' ? [] : FilterEngine.applyFilters(state.onProgress, f, { year: tab3Year, month: tab3Month });
-
-    // Update Tab Toolbar stats labels
-    updateTabStats('priority', tab1Year, tab1Month, tab1Active.length);
-    updateTabStats('process', tab2Year, tab2Month, tab2Active.length, tab2Completed.length);
-    updateTabStats('breakdown', tab3Year, tab3Month, tab3Active.length);
-
-    // Contextual records for Drilldown Modal based on current active tab
-    if (currentTab === 'priority') {
-      lastActive = tab1Active;
-      lastCompleted = tab1Completed;
-    } else if (currentTab === 'process') {
-      lastActive = tab2Active;
-      lastCompleted = tab2Completed;
-    } else if (currentTab === 'breakdown') {
-      lastActive = tab3Active;
-      lastCompleted = [];
-    }
+    // Records for Drilldown Modal (both active & completed are consistent across tabs)
+    lastActive = activeFiltered;
+    lastCompleted = completedFiltered;
 
     // Render Tab 1 Priority KPIs & Table
-    renderKpis(tab1Active, tab1Completed);
-    renderTable(tab1Active);
+    renderKpis(activeFiltered, completedFiltered);
+    renderTable(activeFiltered);
 
     // Render charts for currently active tab
     if (currentTab === 'priority') {
-      CHART_RENDERERS.priority(tab1Active, tab1Completed);
+      CHART_RENDERERS.priority(activeFiltered, completedFiltered);
     } else if (currentTab === 'process') {
-      CHART_RENDERERS.process(tab2Active, tab2Completed);
+      CHART_RENDERERS.process(activeFiltered, completedFiltered);
     } else if (currentTab === 'breakdown') {
-      CHART_RENDERERS.breakdown(tab3Active);
+      CHART_RENDERERS.breakdown(activeFiltered);
     }
   }
 
@@ -304,7 +322,55 @@
       if (e.key === 'Escape' && drillModal && !drillModal.hidden) closeDrill();
     });
 
-    // Tab buttons
+    // Module Navigation Buttons (Level 1)
+    var brandTitle = document.getElementById('brandModuleTitle');
+    var contractView = document.getElementById('module-view-contract');
+    var hiringView = document.getElementById('module-view-hiring');
+    var sepView = document.getElementById('module-view-separation');
+    var tabButtons = document.getElementById('tabButtons');
+
+    document.querySelectorAll('.mod-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mod = btn.getAttribute('data-module');
+        document.querySelectorAll('.mod-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        if (mod === 'contract') {
+          if (brandTitle) brandTitle.textContent = 'Contract Evaluation Monitor';
+          if (tabButtons) tabButtons.style.display = 'flex';
+          if (contractView) contractView.style.display = 'block';
+          if (hiringView) hiringView.style.display = 'none';
+          if (sepView) sepView.style.display = 'none';
+          renderAll();
+        } else if (mod === 'hiring') {
+          if (brandTitle) brandTitle.textContent = 'Hiring Monitoring';
+          if (tabButtons) tabButtons.style.display = 'none';
+          if (contractView) contractView.style.display = 'none';
+          if (sepView) sepView.style.display = 'none';
+          if (hiringView) hiringView.style.display = 'block';
+
+          setTimeout(function () {
+            if (window.HiringApp && typeof window.HiringApp.init === 'function') {
+              window.HiringApp.init();
+            }
+          }, 50);
+        } else if (mod === 'separation') {
+          if (brandTitle) brandTitle.textContent = 'Separation Monitor';
+          if (tabButtons) tabButtons.style.display = 'none';
+          if (contractView) contractView.style.display = 'none';
+          if (hiringView) hiringView.style.display = 'none';
+          if (sepView) sepView.style.display = 'block';
+
+          setTimeout(function () {
+            if (window.SeparationApp && typeof window.SeparationApp.init === 'function') {
+              window.SeparationApp.init();
+            }
+          }, 50);
+        }
+      });
+    });
+
+    // Tab buttons (Level 2)
     document.querySelectorAll('.tab-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });

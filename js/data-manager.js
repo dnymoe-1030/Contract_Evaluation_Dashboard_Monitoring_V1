@@ -101,61 +101,125 @@ var DataManager = (function () {
   }
 
   /**
+   * Detect column indexes dynamically from the header row (row 0),
+   * falling back to canonical index positions if headers are not found.
+   */
+  function resolveColumnMap(headerRow) {
+    var map = {
+      id: 0,
+      name: 1,
+      company: 2,
+      supervisor: 3,
+      hrbp: 4,
+      pic: 5,
+      contractType: 6,
+      endOfContract: 7,
+      smPic: 8,
+      remarks: 9,
+      status: 10,
+      priority: 11,
+      pillar: 12,
+      position: 13,
+      psLevel: 14,
+      actionDate: 15,
+      reminder1: 16,
+      reminder2: 17,
+      reminder3: 18,
+      wesign: 20,
+      slaDays: 21,
+      sla: 22
+    };
+
+    if (!headerRow || !Array.isArray(headerRow)) return map;
+
+    headerRow.forEach(function (col, idx) {
+      var h = String(col || '').trim().toLowerCase();
+      if (!h) return;
+
+      if (h === 'id' || h === 'no' || h === 'no.' || h.indexOf('employee id') !== -1 || h.indexOf('id contract') !== -1) map.id = idx;
+      else if (h.indexOf('employee name') !== -1 || h === 'name' || h === 'nama') map.name = idx;
+      else if (h.indexOf('company') !== -1 || h === 'pt') map.company = idx;
+      else if (h.indexOf('supervisor') !== -1 || h.indexOf('atasan') !== -1) map.supervisor = idx;
+      else if (h.indexOf('hrbp') !== -1) map.hrbp = idx;
+      else if (h.indexOf('pic') !== -1 && h.indexOf('sm pic') === -1) map.pic = idx;
+      else if (h.indexOf('contract type') !== -1 || h.indexOf('tipe') !== -1) map.contractType = idx;
+      else if (h.indexOf('end of contract') !== -1 || h.indexOf('contract end') !== -1 || h.indexOf('eoc') !== -1) map.endOfContract = idx;
+      else if (h.indexOf('sm pic') !== -1 || h === 'sm_pic') map.smPic = idx;
+      else if (h.indexOf('remarks') !== -1 || h.indexOf('stage') !== -1 || h.indexOf('process stage') !== -1) map.remarks = idx;
+      else if (h === 'status' || h.indexOf('status evaluasi') !== -1) map.status = idx;
+      else if (h.indexOf('priority') !== -1 || h === 'prioritas') map.priority = idx;
+      else if (h.indexOf('pillar') !== -1 || h.indexOf('pilar') !== -1) map.pillar = idx;
+      else if (h.indexOf('position') !== -1 || h.indexOf('jabatan') !== -1) map.position = idx;
+      else if (h.indexOf('ps level') !== -1 || h.indexOf('level') !== -1) map.psLevel = idx;
+      else if (h.indexOf('action date') !== -1 || h.indexOf('sap date') !== -1) map.actionDate = idx;
+      else if (h.indexOf('reminder 1') !== -1 || h === 'rem 1') map.reminder1 = idx;
+      else if (h.indexOf('reminder 2') !== -1 || h === 'rem 2') map.reminder2 = idx;
+      else if (h.indexOf('reminder 3') !== -1 || h === 'rem 3') map.reminder3 = idx;
+      else if (h.indexOf('wesign') !== -1 || h.indexOf('we sign') !== -1) map.wesign = idx;
+      else if (h.indexOf('sla days') !== -1 || h.indexOf('days sla') !== -1) map.slaDays = idx;
+      else if (h === 'sla') map.sla = idx;
+    });
+
+    return map;
+  }
+
+  /**
    * Convert CSV rows to structured records
    */
   function convertCSVToRecords(rows) {
     if (rows.length < 2) return [];
 
+    var colMap = resolveColumnMap(rows[0]);
     var records = [];
+
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      // Jika baris kosong atau tidak memiliki nama, lewati
-      if (!row || !row[1] || !row[1].trim()) continue;
+      if (!row || !row[colMap.name] || !row[colMap.name].trim()) continue;
 
-      var endOfContract = parseDateToIso(row[7]);
-      var status = (row[10] || '').trim();
+      var endOfContract = parseDateToIso(row[colMap.endOfContract]);
+      var status = (row[colMap.status] || '').trim();
       var daysRemaining = calcDaysRemaining(endOfContract);
 
       // Reminder dates
-      var rem1 = parseDateToIso(row[16]);
-      var rem2 = parseDateToIso(row[17]);
-      var rem3 = parseDateToIso(row[18]);
+      var rem1 = parseDateToIso(row[colMap.reminder1]);
+      var rem2 = parseDateToIso(row[colMap.reminder2]);
+      var rem3 = parseDateToIso(row[colMap.reminder3]);
       var remCount = 0;
       if (rem1) remCount++;
       if (rem2) remCount++;
       if (rem3) remCount++;
 
       // Priority
-      var priority = (row[11] || '').trim().toUpperCase() || null;
+      var priority = (row[colMap.priority] || '').trim().toUpperCase() || null;
       if (!priority && status === 'On Progress' && daysRemaining !== null) {
         priority = priorityForDays(daysRemaining);
       }
 
       records.push({
-        id: row[0] ? (parseInt(row[0], 10) || row[0]) : null,
-        name: row[1] ? row[1].trim() : '',
-        company: row[2] ? row[2].trim() : '',
-        supervisor: row[3] ? row[3].trim() : null,
-        hrbp: row[4] ? row[4].trim() : null,
-        pic: row[5] ? row[5].trim() : null,
-        contractType: row[6] ? row[6].trim() : 'Contract',
+        id: row[colMap.id] ? (parseInt(row[colMap.id], 10) || row[colMap.id]) : null,
+        name: row[colMap.name] ? row[colMap.name].trim() : '',
+        company: row[colMap.company] ? row[colMap.company].trim() : '',
+        supervisor: row[colMap.supervisor] ? row[colMap.supervisor].trim() : null,
+        hrbp: row[colMap.hrbp] ? row[colMap.hrbp].trim() : null,
+        pic: row[colMap.pic] ? row[colMap.pic].trim() : null,
+        contractType: row[colMap.contractType] ? row[colMap.contractType].trim() : 'Contract',
         endOfContract: endOfContract,
         daysRemaining: daysRemaining,
-        smPic: row[8] ? row[8].trim() : null,
-        remarks: normalizeRemarks(row[9]),
+        smPic: row[colMap.smPic] ? row[colMap.smPic].trim() : null,
+        remarks: normalizeRemarks(row[colMap.remarks]),
         status: status,
         priority: priority,
-        pillar: row[12] ? row[12].trim() : 'Unassigned',
-        position: row[13] ? row[13].trim() : null,
-        psLevel: row[14] ? row[14].trim() : null,
-        actionDate: parseDateToIso(row[15]),
+        pillar: row[colMap.pillar] ? row[colMap.pillar].trim() : 'Unassigned',
+        position: row[colMap.position] ? row[colMap.position].trim() : null,
+        psLevel: row[colMap.psLevel] ? row[colMap.psLevel].trim() : null,
+        actionDate: parseDateToIso(row[colMap.actionDate]),
         reminder1: rem1,
         reminder2: rem2,
         reminder3: rem3,
         reminderCount: remCount,
-        wesign: normalizeWesign(row[20]),
-        slaDays: row[21] ? parseInt(row[21], 10) : null,
-        sla: row[22] ? row[22].trim() : null
+        wesign: normalizeWesign(row[colMap.wesign]),
+        slaDays: row[colMap.slaDays] ? parseInt(row[colMap.slaDays], 10) : null,
+        sla: row[colMap.sla] ? row[colMap.sla].trim() : null
       });
     }
     return records;
@@ -287,8 +351,11 @@ var DataManager = (function () {
       );
     }
 
-    // 1. Prioritaskan pemanggilan Backend Proxy Cloud Run (/api/data)
-    fetch('/api/data')
+    // 1. Prioritaskan pemanggilan Backend Proxy Cloud Run (/api/data?module=...)
+    var targetModule = (state.activeModule || 'contract').toLowerCase();
+    var apiUrl = '/api/data?module=' + encodeURIComponent(targetModule);
+
+    fetch(apiUrl)
       .then(function (res) {
         if (!res.ok) throw new Error('Proxy /api/data HTTP ' + res.status);
         return res.json();
@@ -306,9 +373,15 @@ var DataManager = (function () {
       });
   }
 
+  function loadModule(moduleName, onComplete) {
+    state.activeModule = moduleName || 'contract';
+    load(onComplete);
+  }
+
   return {
     getState: function () { return state; },
     load: load,
-    reload: load
+    reload: load,
+    loadModule: loadModule
   };
 })();
